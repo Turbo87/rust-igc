@@ -1,0 +1,18 @@
+language: rust
+
+rust:
+  - stable
+  - beta
+  - nightly
+
+matrix:
+  allow_failures:
+    - rust: nightly
+
+install:
+  - (test $TRAVIS_RUST_VERSION != "nightly" || cargo install clippy)
+
+script:
+  - cargo build --verbose
+  - cargo test --verbose
+  - (test $TRAVIS_RUST_VERSION != "nightly" || cargo clippy)
