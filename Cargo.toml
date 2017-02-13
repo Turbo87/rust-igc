@@ -4,3 +4,5 @@ version = "0.1.0"
 authors = ["Tobias Bieniek <tobias.bieniek@gmail.com>"]
 
 [dependencies]
+chrono = "0.3"
+geo = "0.3"
