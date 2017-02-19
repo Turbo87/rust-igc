@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate lazy_static;
+
 extern crate chrono;
 extern crate geo;
 extern crate regex;
@@ -6,6 +9,18 @@ use std::str::FromStr;
 use chrono::NaiveTime;
 use geo::Point;
 use regex::Regex;
+
+lazy_static! {
+    static ref RE_B_RECORD: Regex = Regex::new(concat!(r"^B",
+        r"(\d{2})(\d{2})(\d{2})",
+        r"(\d{2})(\d{2})(\d{3})([NS])",
+        r"(\d{3})(\d{2})(\d{3})([EW])",
+        r"([AV])",
+        r"([-\d]\d\d\d\d)",
+        r"([-\d]\d\d\d\d)",
+        r"([0-9a-zA-Z]*).*$",
+    )).unwrap();
+}
 
 struct BRecord {
     time: NaiveTime,
@@ -19,17 +34,7 @@ struct BRecord {
 impl FromStr for BRecord {
     type Err = String;
     fn from_str(s: &str) -> Result<BRecord, String> {
-        let re = Regex::new(concat!(r"^B",
-            r"(\d{2})(\d{2})(\d{2})",
-            r"(\d{2})(\d{2})(\d{3})([NS])",
-            r"(\d{3})(\d{2})(\d{3})([EW])",
-            r"([AV])",
-            r"([-\d]\d\d\d\d)",
-            r"([-\d]\d\d\d\d)",
-            r"([0-9a-zA-Z]*).*$",
-        )).unwrap();
-
-        let caps = re.captures(s).ok_or("Could not parse B record")?;
+        let caps = RE_B_RECORD.captures(s).ok_or("Could not parse B record")?;
 
         let time = NaiveTime::from_hms_opt(
             caps.get(1).unwrap().as_str().parse::<u32>().unwrap(),
