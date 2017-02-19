@@ -29,13 +29,13 @@ impl FromStr for BRecord {
             r"([0-9a-zA-Z]*).*$",
         )).unwrap();
 
-        let caps = try!(re.captures(s).ok_or("Could not parse B record"));
+        let caps = re.captures(s).ok_or("Could not parse B record")?;
 
-        let time = try!(NaiveTime::from_hms_opt(
+        let time = NaiveTime::from_hms_opt(
             caps.get(1).unwrap().as_str().parse::<u32>().unwrap(),
             caps.get(2).unwrap().as_str().parse::<u32>().unwrap(),
             caps.get(3).unwrap().as_str().parse::<u32>().unwrap(),
-        ).ok_or("Invalid time"));
+        ).ok_or("Invalid time")?;
 
         let latitude = parse_angle(
             caps.get(4).unwrap().as_str().parse::<u32>().unwrap(),
