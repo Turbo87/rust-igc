@@ -7,4 +7,5 @@ authors = ["Tobias Bieniek <tobias.bieniek@gmail.com>"]
 chrono = "0.3"
 geo = "0.3"
 lazy_static = "^0.2.2"
+nom = "^2.1"
 regex = "0.2"
