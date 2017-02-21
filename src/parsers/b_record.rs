@@ -47,9 +47,10 @@ named!(pub b_record <BRecord>, do_parse!(
 
 #[cfg(test)]
 mod tests {
+    use nom::IResult::*;
     use chrono::NaiveTime;
     use geo::Point;
-    use super::b_record;
+    use super::{b_record, altitude};
 
     #[test]
     fn test_b_record() {
@@ -65,5 +66,18 @@ mod tests {
         assert_eq!(record.pressure_altitude, Some(2164));
         assert_eq!(record.gnss_altitude, Some(2287));
         assert_eq!(record.extra, "00309");
+    }
+
+    #[test]
+    fn test_altitude() {
+        assert!(altitude(b"abcde").is_err());
+        assert!(altitude(b"--000").is_err());
+        assert_eq!(altitude(b"00000"), Done(&[][..], None));
+        assert_eq!(altitude(b"00001"), Done(&[][..], Some(1)));
+        assert_eq!(altitude(b"-0001"), Done(&[][..], Some(-1)));
+        assert_eq!(altitude(b"-0000"), Done(&[][..], Some(0)));
+        assert_eq!(altitude(b"01234"), Done(&[][..], Some(1234)));
+        assert_eq!(altitude(b"99999"), Done(&[][..], Some(99999)));
+        assert_eq!(altitude(b"-9999"), Done(&[][..], Some(-9999)));
     }
 }
