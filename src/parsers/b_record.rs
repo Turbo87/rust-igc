@@ -1,3 +1,4 @@
+use cgmath::Deg;
 use chrono::NaiveTime;
 use geo::Point;
 
@@ -8,7 +9,7 @@ use super::time::time;
 
 pub struct BRecord {
     pub time: NaiveTime,
-    pub location: Point<f64>,
+    pub location: Point<Deg<f64>>,
     pub valid: bool,
     pub pressure_altitude: Option<i32>,
     pub gnss_altitude: Option<i32>,
@@ -48,6 +49,7 @@ named!(pub b_record <BRecord>, do_parse!(
 #[cfg(test)]
 mod tests {
     use nom::IResult::*;
+    use cgmath::Deg;
     use chrono::NaiveTime;
     use geo::Point;
     use super::{b_record, altitude};
@@ -61,7 +63,7 @@ mod tests {
 
         let record = result.1;
         assert_eq!(record.time, NaiveTime::from_hms(14, 14, 06));
-        assert_eq!(record.location, Point::new(9.8852, 50.28208333333333));
+        assert_eq!(record.location, Point::new(Deg(9.8852), Deg(50.28208333333333)));
         assert_eq!(record.valid, true);
         assert_eq!(record.pressure_altitude, Some(2164));
         assert_eq!(record.gnss_altitude, Some(2287));
