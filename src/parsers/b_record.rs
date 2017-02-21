@@ -10,8 +10,8 @@ pub struct BRecord {
     pub time: NaiveTime,
     pub location: Point<f64>,
     pub valid: bool,
-    pub pressure_altitude: Option<i16>,
-    pub gnss_altitude: Option<i16>,
+    pub pressure_altitude: Option<i32>,
+    pub gnss_altitude: Option<i32>,
     pub extra: String,
 }
 
@@ -20,10 +20,10 @@ named!(validity <bool>, alt!(
     tag!("V") => { |_| false }
 ));
 
-named!(altitude <Option<i16>>, alt!(
+named!(altitude <Option<i32>>, alt!(
     tag!("00000") => { |_| None } |
-    up_to_99999 => { |value| Some(value as i16) } |
-    down_to_minus_9999 => { |value| Some(value as i16) }
+    up_to_99999 => { |value| Some(value as i32) } |
+    down_to_minus_9999 => { |value| Some(value as i32) }
 ));
 
 named!(pub b_record <BRecord>, do_parse!(
