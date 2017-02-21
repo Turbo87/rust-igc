@@ -1,6 +1,6 @@
 use nom;
 
-use super::helpers::buf_to_u32;
+use super::helpers::{buf_to_u32, buf_to_i32};
 
 named!(pub below_24 <u32>, alt!(do_parse!(
     f:char_between!('0','1') >>
@@ -45,6 +45,35 @@ named!(pub below_1000 <u32>, do_parse!(
     s:char_between!('0','9') >>
     t:char_between!('0','9') >>
     (buf_to_u32(f) * 100 + buf_to_u32(s) * 10 + buf_to_u32(t))
+));
+
+named!(pub up_to_99999 <u32>, do_parse!(
+    char_1: char_between!('0','9') >>
+    char_2: char_between!('0','9') >>
+    char_3: char_between!('0','9') >>
+    char_4: char_between!('0','9') >>
+    char_5: char_between!('0','9') >>
+    (
+        buf_to_u32(char_1) * 10000 +
+        buf_to_u32(char_2) * 1000 +
+        buf_to_u32(char_3) * 100 +
+        buf_to_u32(char_4) * 10 +
+        buf_to_u32(char_5)
+    )
+));
+
+named!(pub down_to_minus_9999 <i32>, do_parse!(
+    tag!("-") >>
+    char_1: char_between!('0','9') >>
+    char_2: char_between!('0','9') >>
+    char_3: char_between!('0','9') >>
+    char_4: char_between!('0','9') >>
+    (
+        -buf_to_i32(char_1) * 1000 +
+        -buf_to_i32(char_2) * 100 +
+        -buf_to_i32(char_3) * 10 +
+        -buf_to_i32(char_4)
+    )
 ));
 
 #[cfg(test)]
@@ -133,5 +162,29 @@ mod tests {
         assert_eq!(below_1000(b"999"), Done(&[][..], 999));
         assert_eq!(below_1000(b"1000"), Done(&b"0"[..], 100));
         assert_eq!(below_1000(b"179-"), Done(&b"-"[..], 179));
+    }
+
+    #[test]
+    fn test_up_to_99999() {
+        assert!(up_to_99999(b"00").is_incomplete());
+        assert!(up_to_99999(b"-10").is_err());
+        assert!(up_to_99999(b"abcde").is_err());
+        assert_eq!(up_to_99999(b"00000"), Done(&[][..], 0));
+        assert_eq!(up_to_99999(b"00230"), Done(&[][..], 230));
+        assert_eq!(up_to_99999(b"92345"), Done(&[][..], 92345));
+        assert_eq!(up_to_99999(b"99999"), Done(&[][..], 99999));
+        assert_eq!(up_to_99999(b"100000"), Done(&b"0"[..], 10000));
+    }
+
+    #[test]
+    fn test_down_to_minus_9999() {
+        assert!(down_to_minus_9999(b"-000").is_incomplete());
+        assert!(down_to_minus_9999(b"+1000").is_err());
+        assert!(down_to_minus_9999(b"abcde").is_err());
+        assert_eq!(down_to_minus_9999(b"-0000"), Done(&[][..], 0));
+        assert_eq!(down_to_minus_9999(b"-0230"), Done(&[][..], -230));
+        assert_eq!(down_to_minus_9999(b"-2345"), Done(&[][..], -2345));
+        assert_eq!(down_to_minus_9999(b"-9999"), Done(&[][..], -9999));
+        assert_eq!(down_to_minus_9999(b"-10000"), Done(&b"0"[..], -1000));
     }
 }
