@@ -1,4 +1,3 @@
-use nom;
 use chrono::NaiveTime;
 
 use super::numbers::{below_24, below_60};

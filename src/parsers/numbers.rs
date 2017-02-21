@@ -79,7 +79,6 @@ named!(pub down_to_minus_9999 <i32>, do_parse!(
 #[cfg(test)]
 mod tests {
     use nom::IResult::*;
-    use chrono::NaiveTime;
     use super::*;
 
     #[test]

@@ -1,4 +1,3 @@
-use nom;
 use geo::Point;
 
 use super::numbers::*;
@@ -42,8 +41,6 @@ named!(pub coordinate <Point<f64>>, do_parse!(
 
 #[cfg(test)]
 mod tests {
-    use nom::IResult::*;
-    use chrono::NaiveTime;
     use super::{latitude, longitude, coordinate};
 
     #[test]
