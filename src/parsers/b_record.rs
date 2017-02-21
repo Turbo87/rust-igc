@@ -1,3 +1,4 @@
+use nom::IResult;
 use cgmath::Deg;
 use chrono::NaiveTime;
 use geo::Point;
@@ -27,24 +28,27 @@ named!(altitude <Option<i32>>, alt!(
     down_to_minus_9999 => { |value| Some(value as i32) }
 ));
 
-named!(pub b_record <BRecord>, do_parse!(
-    tag!("B") >>
-    time: time >>
-    location: coordinate >>
-    valid: validity >>
-    pressure_altitude: altitude >>
-    gnss_altitude: altitude >>
-    extra: take_until!("\r\n") >>
-    take!(2) >>
-    (BRecord {
-        time: time,
-        location: location,
-        valid: valid,
-        pressure_altitude: pressure_altitude,
-        gnss_altitude: gnss_altitude,
-        extra: to_string(extra).to_string(),
-    })
-));
+pub fn b_record(input: &[u8]) -> IResult<&[u8], BRecord> {
+    do_parse!(
+        input,
+        tag!("B") >>
+        time: time >>
+        location: coordinate >>
+        valid: validity >>
+        pressure_altitude: altitude >>
+        gnss_altitude: altitude >>
+        extra: take_until!("\r\n") >>
+        take!(2) >>
+        (BRecord {
+            time: time,
+            location: location,
+            valid: valid,
+            pressure_altitude: pressure_altitude,
+            gnss_altitude: gnss_altitude,
+            extra: to_string(extra).to_string(),
+        })
+    )
+}
 
 #[cfg(test)]
 mod tests {
