@@ -7,7 +7,7 @@ authors = ["Tobias Bieniek <tobias.bieniek@gmail.com>"]
 cgmath = "^0.12"
 chrono = "0.3"
 geo = { git = "https://github.com/Turbo87/rust-geo", branch = "angles" }
-nom = "^2.1"
+nom = "^3"
 
 [dev-dependencies]
 approx = "^0.1.1"
