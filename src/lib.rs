@@ -5,13 +5,14 @@ extern crate chrono;
 #[macro_use]
 extern crate approx;
 
-pub mod records;
-pub mod coordinate;
+mod records;
+mod coordinate;
 mod error;
 mod time;
 
 pub use error::ParseError;
 pub use records::*;
+pub use coordinate::Point;
 
 /// Parse a single line of an IGC flight log file
 ///
@@ -24,8 +25,7 @@ pub use records::*;
 /// # extern crate chrono;
 /// # extern crate igc;
 /// #
-/// # use igc::{parse_line, Record};
-/// # use igc::coordinate::Point;
+/// # use igc::{parse_line, Record, Point};
 /// # use cgmath::Deg;
 /// # use chrono::NaiveTime;
 /// #
