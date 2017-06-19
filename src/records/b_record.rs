@@ -15,7 +15,7 @@ pub struct BRecord {
 
 impl BRecord {
     pub fn parse(input: &[u8]) -> Result<Self, ParseError> {
-        debug_assert!(input[0] == b'B');
+        debug_assert_eq!(input[0], b'B');
 
         let len = input.len();
         if len < 35 {
@@ -49,7 +49,7 @@ fn parse_validity(input: u8) -> Result<bool, ParseError> {
 }
 
 fn parse_altitude(input: &[u8]) -> Result<Option<i32>, ParseError> {
-    debug_assert!(input.len() == 5);
+    debug_assert_eq!(input.len(), 5);
 
     return if input == b"00000" {
         Ok(None)

@@ -23,7 +23,7 @@ fn parse_latitude_invert(input: u8) -> Option<bool> {
 }
 
 pub fn parse_latitude(input: &[u8]) -> Result<Deg<f64>, ParseError> {
-    debug_assert!(input.len() == 8);
+    debug_assert_eq!(input.len(), 8);
 
     let str = String::from_utf8(input.to_vec())?;
 
@@ -53,7 +53,7 @@ fn parse_longitude_invert(input: u8) -> Option<bool> {
 }
 
 pub fn parse_longitude(input: &[u8]) -> Result<Deg<f64>, ParseError> {
-    debug_assert!(input.len() == 9);
+    debug_assert_eq!(input.len(), 9);
 
     let str = String::from_utf8(input.to_vec())?;
 
@@ -80,7 +80,7 @@ fn dms_to_deg(deg: f64, min: f64, min_dec: f64, invert: bool) -> Deg<f64> {
 }
 
 pub fn parse_coordinate(input: &[u8]) -> Result<Point, ParseError> {
-    debug_assert!(input.len() == 17);
+    debug_assert_eq!(input.len(), 17);
 
     let latitude = parse_latitude(&input[0..8])?;
     let longitude = parse_longitude(&input[8..17])?;

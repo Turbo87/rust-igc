@@ -3,7 +3,7 @@ use chrono::NaiveTime;
 use super::ParseError;
 
 pub fn parse_time(input: &[u8]) -> Result<NaiveTime, ParseError> {
-    debug_assert!(input.len() == 6);
+    debug_assert_eq!(input.len(), 6);
 
     let str = String::from_utf8(input.to_vec())?;
 
