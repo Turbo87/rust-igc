@@ -17,8 +17,7 @@ fn it_works() {
     let buf_reader = BufReader::new(file);
 
     for line in buf_reader.lines() {
-        let mut s = line.unwrap();
-        s.push_str("\r\n");
+        let s = line.unwrap();
         parse_line(s.as_ref()).unwrap();
     }
 }

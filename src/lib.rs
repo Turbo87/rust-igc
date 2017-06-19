@@ -69,7 +69,7 @@ pub enum Record {
 /// # use chrono::NaiveTime;
 /// #
 /// # fn main() {
-/// let record = parse_line("B1414065016925N00953112EA021640228700309\r\n").unwrap();
+/// let record = parse_line("B1414065016925N00953112EA021640228700309").unwrap();
 /// match record {
 ///     Record::B(record) => {
 ///         assert_eq!(record.time, NaiveTime::from_hms(14, 14, 06));
@@ -77,7 +77,7 @@ pub enum Record {
 ///         assert_eq!(record.valid, true);
 ///         assert_eq!(record.pressure_altitude, Some(2164));
 ///         assert_eq!(record.gnss_altitude, Some(2287));
-///         assert_eq!(record.extra, "00309");
+///         assert_eq!(String::from_utf8(record.extra).unwrap(), "00309");
 ///     },
 ///     _ => panic!("Unknown record")
 /// }
@@ -106,8 +106,5 @@ fn parse_line_from_bytes(bytes: &[u8]) -> Result<Record, ()> {
 }
 
 fn parse_b_record(bytes: &[u8]) -> Result<BRecord, ()> {
-    match parsers::b_record::b_record(bytes) {
-        IResult::Done(_, b_record) => Ok(b_record),
-        _ => Err(())
-    }
+    parsers::b_record::b_record(bytes)
 }
