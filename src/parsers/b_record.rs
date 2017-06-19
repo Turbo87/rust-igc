@@ -23,11 +23,17 @@ fn parse_validity(input: u8) -> Result<bool, ()> {
     }
 }
 
-named!(altitude <Option<i32>>, alt!(
-    tag!("00000") => { |_| None } |
-    up_to_99999 => { |value| Some(value as i32) } |
-    down_to_minus_9999 => { |value| Some(value as i32) }
-));
+fn parse_altitude(input: &[u8]) -> Result<Option<i32>, ()> {
+    debug_assert!(input.len() == 5);
+
+    return if input == b"00000" {
+        Ok(None)
+    } else {
+        String::from_utf8(input.to_vec()).map_err(|_| ())
+            .and_then(|s| s.parse::<i32>().map_err(|_| ()))
+            .map(|value| Some(value))
+    }
+}
 
 pub fn b_record(input: &[u8]) -> Result<BRecord, ()> {
     debug_assert!(input[0] == b'B');
@@ -40,8 +46,8 @@ pub fn b_record(input: &[u8]) -> Result<BRecord, ()> {
     let _time = time(&input[1..7]).unwrap().1;
     let _coordinate = coordinate(&input[7..24]).unwrap().1;
     let _valid = parse_validity(input[24])?;
-    let _pressure_altitude = altitude(&input[25..30]).unwrap().1;
-    let _gnss_altitude = altitude(&input[30..35]).unwrap().1;
+    let _pressure_altitude = parse_altitude(&input[25..30]).unwrap();
+    let _gnss_altitude = parse_altitude(&input[30..35]).unwrap();
     let _extra = input[35..].to_vec();
 
     Ok(BRecord {
@@ -59,7 +65,7 @@ mod tests {
     use nom::IResult::*;
     use cgmath::Deg;
     use chrono::NaiveTime;
-    use super::{b_record, altitude, Point};
+    use super::{b_record, parse_altitude, Point};
 
     #[test]
     fn test_b_record() {
@@ -74,14 +80,14 @@ mod tests {
 
     #[test]
     fn test_altitude() {
-        assert!(altitude(b"abcde").is_err());
-        assert!(altitude(b"--000").is_err());
-        assert_eq!(altitude(b"00000"), Done(&[][..], None));
-        assert_eq!(altitude(b"00001"), Done(&[][..], Some(1)));
-        assert_eq!(altitude(b"-0001"), Done(&[][..], Some(-1)));
-        assert_eq!(altitude(b"-0000"), Done(&[][..], Some(0)));
-        assert_eq!(altitude(b"01234"), Done(&[][..], Some(1234)));
-        assert_eq!(altitude(b"99999"), Done(&[][..], Some(99999)));
-        assert_eq!(altitude(b"-9999"), Done(&[][..], Some(-9999)));
+        assert!(parse_altitude(b"abcde").is_err());
+        assert!(parse_altitude(b"--000").is_err());
+        assert_eq!(parse_altitude(b"00000").unwrap(), None);
+        assert_eq!(parse_altitude(b"00001").unwrap(), Some(1));
+        assert_eq!(parse_altitude(b"-0001").unwrap(), Some(-1));
+        assert_eq!(parse_altitude(b"-0000").unwrap(), Some(0));
+        assert_eq!(parse_altitude(b"01234").unwrap(), Some(1234));
+        assert_eq!(parse_altitude(b"99999").unwrap(), Some(99999));
+        assert_eq!(parse_altitude(b"-9999").unwrap(), Some(-9999));
     }
 }
