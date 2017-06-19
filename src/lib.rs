@@ -12,8 +12,43 @@ pub mod parsers;
 
 use nom::IResult;
 
+/// IGC file record type representing a single line
 pub enum Record {
-    B(parsers::b_record::BRecord)
+    /// FR manufacturer and FR serial no.
+    A,
+
+    /// Fix
+    B(parsers::b_record::BRecord),
+
+    /// Task/declaration
+    C,
+
+    /// Differential GPS
+    D,
+
+    /// Event
+    E,
+
+    /// Satellite constellation
+    F,
+
+    /// Security
+    G,
+
+    /// File header
+    H,
+
+    /// List of additional data included at end of each B-record
+    I,
+
+    /// List of additional data included at end of each K-record
+    J,
+
+    /// Frequent data, additional to the B-record
+    K,
+
+    /// Logbook/comments
+    L,
 }
 
 /// Parse a single line of an IGC flight log file
@@ -48,8 +83,26 @@ pub enum Record {
 /// # }
 /// ```
 pub fn parse_line(line: &str) -> Result<Record, ()> {
-    match parsers::b_record::b_record(line.as_bytes()) {
-        IResult::Done(_, b_record) => Ok(Record::B(b_record)),
-        _ => Err(())
+    parse_line_from_bytes(line.as_bytes())
+}
+
+fn parse_line_from_bytes(bytes: &[u8]) -> Result<Record, ()> {
+    match bytes[0] {
+        b'A' => Ok(Record::A),
+        b'B' => match parsers::b_record::b_record(bytes) {
+            IResult::Done(_, b_record) => Ok(Record::B(b_record)),
+            _ => Err(())
+        },
+        b'C' => Ok(Record::C),
+        b'D' => Ok(Record::D),
+        b'E' => Ok(Record::E),
+        b'F' => Ok(Record::F),
+        b'G' => Ok(Record::G),
+        b'H' => Ok(Record::H),
+        b'I' => Ok(Record::I),
+        b'J' => Ok(Record::J),
+        b'K' => Ok(Record::K),
+        b'L' => Ok(Record::L),
+        _ => Err(()),
     }
 }
