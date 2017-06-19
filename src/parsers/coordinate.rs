@@ -1,7 +1,18 @@
 use cgmath::Deg;
-use geo::Point;
 
 use super::numbers::*;
+
+#[derive(PartialEq, Clone, Copy, Debug)]
+pub struct Point {
+    pub longitude: Deg<f64>,
+    pub latitude: Deg<f64>,
+}
+
+impl Point {
+    pub fn new(longitude: Deg<f64>, latitude: Deg<f64>) -> Point {
+        Point { longitude, latitude }
+    }
+}
 
 named!(lat_invert <bool>, alt!(
     tag!("N") => { |_| false } |
@@ -34,7 +45,7 @@ fn parse(deg: f64, min: f64, min_dec: f64, invert: bool) -> Deg<f64> {
     if invert { -value } else { value }
 }
 
-named!(pub coordinate <Point<Deg<f64>>>, do_parse!(
+named!(pub coordinate <Point>, do_parse!(
     lat: latitude >>
     lng: longitude >>
     (Point::new(lng, lat))
@@ -77,7 +88,7 @@ mod tests {
         let result = coordinate(b"5016925N00953112E");
         assert!(result.is_done());
         let point = result.unwrap().1;
-        assert_relative_eq!(point.x(), Deg(9.8852));
-        assert_relative_eq!(point.y(), Deg(50.28208333333333));
+        assert_relative_eq!(point.longitude, Deg(9.8852));
+        assert_relative_eq!(point.latitude, Deg(50.28208333333333));
     }
 }

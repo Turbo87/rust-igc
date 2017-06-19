@@ -1,16 +1,14 @@
 use nom::IResult;
-use cgmath::Deg;
 use chrono::NaiveTime;
-use geo::Point;
 
-use super::coordinate::coordinate;
+use super::coordinate::{coordinate, Point};
 use super::helpers::to_string;
 use super::numbers::{up_to_99999, down_to_minus_9999};
 use super::time::time;
 
 pub struct BRecord {
     pub time: NaiveTime,
-    pub location: Point<Deg<f64>>,
+    pub location: Point,
     pub valid: bool,
     pub pressure_altitude: Option<i32>,
     pub gnss_altitude: Option<i32>,
@@ -55,8 +53,7 @@ mod tests {
     use nom::IResult::*;
     use cgmath::Deg;
     use chrono::NaiveTime;
-    use geo::Point;
-    use super::{b_record, altitude};
+    use super::{b_record, altitude, Point};
 
     #[test]
     fn test_b_record() {
