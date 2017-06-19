@@ -15,10 +15,13 @@ pub struct BRecord {
     pub extra: Vec<u8>,
 }
 
-named!(validity <bool>, alt!(
-    tag!("A") => { |_| true } |
-    tag!("V") => { |_| false }
-));
+fn parse_validity(input: u8) -> Result<bool, ()> {
+    match input {
+        b'A' => Ok(true),
+        b'V' => Ok(false),
+        _ => Err(())
+    }
+}
 
 named!(altitude <Option<i32>>, alt!(
     tag!("00000") => { |_| None } |
@@ -36,7 +39,7 @@ pub fn b_record(input: &[u8]) -> Result<BRecord, ()> {
 
     let _time = time(&input[1..7]).unwrap().1;
     let _coordinate = coordinate(&input[7..24]).unwrap().1;
-    let _valid = validity(&input[24..25]).unwrap().1;
+    let _valid = parse_validity(input[24])?;
     let _pressure_altitude = altitude(&input[25..30]).unwrap().1;
     let _gnss_altitude = altitude(&input[30..35]).unwrap().1;
     let _extra = input[35..].to_vec();
