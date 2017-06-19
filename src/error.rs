@@ -11,6 +11,8 @@ pub enum ParseError {
     UnknownRecordType(u8),
     InvalidValidity(u8),
     InvalidTime(String),
+    InvalidLatitude(String),
+    InvalidLongitude(String),
 }
 
 impl fmt::Display for ParseError {
@@ -22,6 +24,8 @@ impl fmt::Display for ParseError {
             ParseError::UnknownRecordType(t) => write!(f, "Unknown record type: {}", t as char),
             ParseError::InvalidValidity(v) => write!(f, "Invalid validity: {}", v as char),
             ParseError::InvalidTime(ref str) => write!(f, "Invalid time: {}", str),
+            ParseError::InvalidLatitude(ref str) => write!(f, "Invalid latitude: {}", str),
+            ParseError::InvalidLongitude(ref str) => write!(f, "Invalid longitude: {}", str),
         }
     }
 }
@@ -35,6 +39,8 @@ impl error::Error for ParseError {
             ParseError::UnknownRecordType(..) => "Unknown record type",
             ParseError::InvalidValidity(..) => "Invalid validity",
             ParseError::InvalidTime(..) => "Invalid time",
+            ParseError::InvalidLatitude(..) => "Invalid latitude",
+            ParseError::InvalidLongitude(..) => "Invalid longitude",
         }
     }
 

@@ -1,6 +1,6 @@
 use chrono::NaiveTime;
 
-use super::coordinate::{coordinate, Point};
+use super::coordinate::{parse_coordinate, Point};
 use super::time::parse_time;
 use super::super::ParseError;
 
@@ -40,7 +40,7 @@ pub fn b_record(input: &[u8]) -> Result<BRecord, ParseError> {
     }
 
     let _time = parse_time(&input[1..7])?;
-    let _coordinate = coordinate(&input[7..24]).unwrap().1;
+    let _coordinate = parse_coordinate(&input[7..24])?;
     let _valid = parse_validity(input[24])?;
     let _pressure_altitude = parse_altitude(&input[25..30])?;
     let _gnss_altitude = parse_altitude(&input[30..35])?;
