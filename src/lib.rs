@@ -11,6 +11,7 @@ extern crate approx;
 pub mod parsers;
 
 use nom::IResult;
+use parsers::b_record::BRecord;
 
 /// IGC file record type representing a single line
 pub enum Record {
@@ -89,10 +90,7 @@ pub fn parse_line(line: &str) -> Result<Record, ()> {
 fn parse_line_from_bytes(bytes: &[u8]) -> Result<Record, ()> {
     match bytes[0] {
         b'A' => Ok(Record::A),
-        b'B' => match parsers::b_record::b_record(bytes) {
-            IResult::Done(_, b_record) => Ok(Record::B(b_record)),
-            _ => Err(())
-        },
+        b'B' => parse_b_record(bytes).map(Record::B),
         b'C' => Ok(Record::C),
         b'D' => Ok(Record::D),
         b'E' => Ok(Record::E),
@@ -104,5 +102,12 @@ fn parse_line_from_bytes(bytes: &[u8]) -> Result<Record, ()> {
         b'K' => Ok(Record::K),
         b'L' => Ok(Record::L),
         _ => Err(()),
+    }
+}
+
+fn parse_b_record(bytes: &[u8]) -> Result<BRecord, ()> {
+    match parsers::b_record::b_record(bytes) {
+        IResult::Done(_, b_record) => Ok(b_record),
+        _ => Err(())
     }
 }
