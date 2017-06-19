@@ -51,11 +51,11 @@ fn parse_validity(input: u8) -> Result<bool, ParseError> {
 fn parse_altitude(input: &[u8]) -> Result<Option<i32>, ParseError> {
     debug_assert_eq!(input.len(), 5);
 
-    return if input == b"00000" {
-        Ok(None)
+    Ok(if input == b"00000" {
+        None
     } else {
-        Ok(Some(String::from_utf8(input.to_vec())?.parse::<i32>()?))
-    }
+        Some(String::from_utf8(input.to_vec())?.parse::<i32>()?)
+    })
 }
 
 #[cfg(test)]
