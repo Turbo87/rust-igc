@@ -39,10 +39,17 @@ pub enum Record {
 
     /// Logbook/comments
     L,
+
+    /// Empty line
+    Empty,
 }
 
 impl Record {
     pub fn parse(bytes: &[u8]) -> Result<Record, ParseError> {
+        if bytes.len() == 0 {
+            return Ok(Record::Empty);
+        }
+
         match bytes[0] {
             b'A' => Ok(Record::A),
             b'B' => BRecord::parse(bytes).map(Record::B),

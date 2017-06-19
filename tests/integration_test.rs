@@ -31,6 +31,7 @@ fn it_works() {
     let mut j_record_count = 0;
     let mut k_record_count = 0;
     let mut l_record_count = 0;
+    let mut empty_record_count = 0;
 
     for result in parse(buf_reader) {
         result_count += 1;
@@ -53,6 +54,7 @@ fn it_works() {
                     Record::J => j_record_count += 1,
                     Record::K => k_record_count += 1,
                     Record::L => l_record_count += 1,
+                    Record::Empty => empty_record_count += 1,
                 }
             },
         }
@@ -75,4 +77,5 @@ fn it_works() {
     assert_eq!(j_record_count, 0);
     assert_eq!(k_record_count, 0);
     assert_eq!(l_record_count, 3616);
+    assert_eq!(empty_record_count, 0);
 }
