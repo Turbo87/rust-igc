@@ -1,10 +1,6 @@
-use nom::IResult;
 use chrono::NaiveTime;
-use std::str::FromStr;
 
 use super::coordinate::{coordinate, Point};
-use super::helpers::to_string;
-use super::numbers::{up_to_99999, down_to_minus_9999};
 use super::time::parse_time;
 use super::super::ParseError;
 
@@ -62,7 +58,6 @@ pub fn b_record(input: &[u8]) -> Result<BRecord, ParseError> {
 
 #[cfg(test)]
 mod tests {
-    use nom::IResult::*;
     use cgmath::Deg;
     use chrono::NaiveTime;
     use super::{b_record, parse_altitude, Point};

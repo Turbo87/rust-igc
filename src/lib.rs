@@ -12,7 +12,6 @@ pub mod parsers;
 mod error;
 
 pub use error::ParseError;
-use nom::IResult;
 use parsers::b_record::BRecord;
 
 /// IGC file record type representing a single line

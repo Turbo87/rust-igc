@@ -16,7 +16,6 @@ pub fn parse_time(input: &[u8]) -> Result<NaiveTime, ParseError> {
 
 #[cfg(test)]
 mod tests {
-    use nom::IResult::*;
     use chrono::NaiveTime;
     use super::parse_time;
 
