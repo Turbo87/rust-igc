@@ -88,7 +88,7 @@ pub fn parse_line(line: &str) -> Result<Record, ParseError> {
 fn parse_line_from_bytes(bytes: &[u8]) -> Result<Record, ParseError> {
     match bytes[0] {
         b'A' => Ok(Record::A),
-        b'B' => parse_b_record(bytes).map(Record::B),
+        b'B' => BRecord::parse(bytes).map(Record::B),
         b'C' => Ok(Record::C),
         b'D' => Ok(Record::D),
         b'E' => Ok(Record::E),
@@ -101,8 +101,4 @@ fn parse_line_from_bytes(bytes: &[u8]) -> Result<Record, ParseError> {
         b'L' => Ok(Record::L),
         _ => Err(ParseError::UnknownRecordType(bytes[0])),
     }
-}
-
-fn parse_b_record(bytes: &[u8]) -> Result<BRecord, ParseError> {
-    parsers::b_record::b_record(bytes)
 }

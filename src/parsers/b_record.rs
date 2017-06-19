@@ -13,6 +13,33 @@ pub struct BRecord {
     pub extra: Vec<u8>,
 }
 
+impl BRecord {
+    pub fn parse(input: &[u8]) -> Result<Self, ParseError> {
+        debug_assert!(input[0] == b'B');
+
+        let len = input.len();
+        if len < 35 {
+            return Err(ParseError::LineTooShort);
+        }
+
+        let _time = parse_time(&input[1..7])?;
+        let _coordinate = parse_coordinate(&input[7..24])?;
+        let _valid = parse_validity(input[24])?;
+        let _pressure_altitude = parse_altitude(&input[25..30])?;
+        let _gnss_altitude = parse_altitude(&input[30..35])?;
+        let _extra = input[35..].to_vec();
+
+        Ok(BRecord {
+            time: _time,
+            location: _coordinate,
+            valid: _valid,
+            pressure_altitude: _pressure_altitude,
+            gnss_altitude: _gnss_altitude,
+            extra: _extra,
+        })
+    }
+}
+
 fn parse_validity(input: u8) -> Result<bool, ParseError> {
     match input {
         b'A' => Ok(true),
@@ -31,40 +58,15 @@ fn parse_altitude(input: &[u8]) -> Result<Option<i32>, ParseError> {
     }
 }
 
-pub fn b_record(input: &[u8]) -> Result<BRecord, ParseError> {
-    debug_assert!(input[0] == b'B');
-
-    let len = input.len();
-    if len < 35 {
-        return Err(ParseError::LineTooShort);
-    }
-
-    let _time = parse_time(&input[1..7])?;
-    let _coordinate = parse_coordinate(&input[7..24])?;
-    let _valid = parse_validity(input[24])?;
-    let _pressure_altitude = parse_altitude(&input[25..30])?;
-    let _gnss_altitude = parse_altitude(&input[30..35])?;
-    let _extra = input[35..].to_vec();
-
-    Ok(BRecord {
-        time: _time,
-        location: _coordinate,
-        valid: _valid,
-        pressure_altitude: _pressure_altitude,
-        gnss_altitude: _gnss_altitude,
-        extra: _extra,
-    })
-}
-
 #[cfg(test)]
 mod tests {
     use cgmath::Deg;
     use chrono::NaiveTime;
-    use super::{b_record, parse_altitude, Point};
+    use super::{BRecord, parse_altitude, Point};
 
     #[test]
     fn test_b_record() {
-        let record = b_record(b"B1414065016925N00953112EA021640228700309").unwrap();
+        let record = BRecord::parse(b"B1414065016925N00953112EA021640228700309").unwrap();
         assert_eq!(record.time, NaiveTime::from_hms(14, 14, 06));
         assert_eq!(record.location, Point::new(Deg(9.8852), Deg(50.28208333333333)));
         assert_eq!(record.valid, true);
