@@ -2,7 +2,7 @@ use chrono::NaiveTime;
 
 use super::coordinate::{parse_coordinate, Point};
 use super::time::parse_time;
-use super::super::ParseError;
+use super::ParseError;
 
 pub struct BRecord {
     pub time: NaiveTime,

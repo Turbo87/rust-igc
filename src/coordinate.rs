@@ -1,6 +1,6 @@
 use cgmath::Deg;
 
-use super::super::ParseError;
+use super::ParseError;
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub struct Point {

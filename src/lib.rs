@@ -5,11 +5,13 @@ extern crate chrono;
 #[macro_use]
 extern crate approx;
 
-pub mod parsers;
+mod b_record;
+pub mod coordinate;
 mod error;
+mod time;
 
 pub use error::ParseError;
-use parsers::b_record::BRecord;
+use b_record::BRecord;
 
 /// IGC file record type representing a single line
 pub enum Record {
@@ -17,7 +19,7 @@ pub enum Record {
     A,
 
     /// Fix
-    B(parsers::b_record::BRecord),
+    B(BRecord),
 
     /// Task/declaration
     C,
@@ -62,7 +64,7 @@ pub enum Record {
 /// # extern crate igc;
 /// #
 /// # use igc::{parse_line, Record};
-/// # use igc::parsers::coordinate::Point;
+/// # use igc::coordinate::Point;
 /// # use cgmath::Deg;
 /// # use chrono::NaiveTime;
 /// #

@@ -1,6 +1,6 @@
 use chrono::NaiveTime;
 
-use super::super::ParseError;
+use super::ParseError;
 
 pub fn parse_time(input: &[u8]) -> Result<NaiveTime, ParseError> {
     debug_assert!(input.len() == 6);
