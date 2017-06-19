@@ -16,8 +16,12 @@ fn it_works() {
     let file = File::open(path).unwrap();
     let buf_reader = BufReader::new(file);
 
+    let mut records = Vec::new();
+
     for line in buf_reader.lines() {
-        let s = line.unwrap();
-        parse_line(s.as_ref()).unwrap();
+        let record = parse_line(line.unwrap().as_ref()).unwrap();
+        records.push(record);
     }
+
+    assert_eq!(records.len(), 13533);
 }
