@@ -17,8 +17,7 @@ fn it_works() {
     let buf_reader = BufReader::new(file);
 
     let records: Vec<Record> = parse(buf_reader)
-        .filter(|result| result.is_ok())
-        .map(|result| result.unwrap())
+        .filter_map(Result::ok)
         .collect();
 
     assert_eq!(records.len(), 13533);
