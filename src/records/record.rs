@@ -1,4 +1,5 @@
 use super::BRecord;
+use super::super::ParseError;
 
 /// IGC file record type representing a single line
 pub enum Record {
@@ -37,4 +38,24 @@ pub enum Record {
 
     /// Logbook/comments
     L,
+}
+
+impl Record {
+    pub fn parse(bytes: &[u8]) -> Result<Record, ParseError> {
+        match bytes[0] {
+            b'A' => Ok(Record::A),
+            b'B' => BRecord::parse(bytes).map(Record::B),
+            b'C' => Ok(Record::C),
+            b'D' => Ok(Record::D),
+            b'E' => Ok(Record::E),
+            b'F' => Ok(Record::F),
+            b'G' => Ok(Record::G),
+            b'H' => Ok(Record::H),
+            b'I' => Ok(Record::I),
+            b'J' => Ok(Record::J),
+            b'K' => Ok(Record::K),
+            b'L' => Ok(Record::L),
+            _ => Err(ParseError::UnknownRecordType(bytes[0])),
+        }
+    }
 }

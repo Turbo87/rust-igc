@@ -45,23 +45,5 @@ pub use records::*;
 /// # }
 /// ```
 pub fn parse_line(line: &str) -> Result<Record, ParseError> {
-    parse_line_from_bytes(line.as_bytes())
-}
-
-fn parse_line_from_bytes(bytes: &[u8]) -> Result<Record, ParseError> {
-    match bytes[0] {
-        b'A' => Ok(Record::A),
-        b'B' => BRecord::parse(bytes).map(Record::B),
-        b'C' => Ok(Record::C),
-        b'D' => Ok(Record::D),
-        b'E' => Ok(Record::E),
-        b'F' => Ok(Record::F),
-        b'G' => Ok(Record::G),
-        b'H' => Ok(Record::H),
-        b'I' => Ok(Record::I),
-        b'J' => Ok(Record::J),
-        b'K' => Ok(Record::K),
-        b'L' => Ok(Record::L),
-        _ => Err(ParseError::UnknownRecordType(bytes[0])),
-    }
+    Record::parse(line.as_bytes())
 }
