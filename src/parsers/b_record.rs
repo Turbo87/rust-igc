@@ -1,10 +1,11 @@
 use nom::IResult;
 use chrono::NaiveTime;
+use std::str::FromStr;
 
 use super::coordinate::{coordinate, Point};
 use super::helpers::to_string;
 use super::numbers::{up_to_99999, down_to_minus_9999};
-use super::time::time;
+use super::time::parse_time;
 use super::super::ParseError;
 
 pub struct BRecord {
@@ -42,7 +43,7 @@ pub fn b_record(input: &[u8]) -> Result<BRecord, ParseError> {
         return Err(ParseError::LineTooShort);
     }
 
-    let _time = time(&input[1..7]).unwrap().1;
+    let _time = parse_time(&input[1..7])?;
     let _coordinate = coordinate(&input[7..24]).unwrap().1;
     let _valid = parse_validity(input[24])?;
     let _pressure_altitude = parse_altitude(&input[25..30])?;

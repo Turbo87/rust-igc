@@ -10,6 +10,7 @@ pub enum ParseError {
     LineTooShort,
     UnknownRecordType(u8),
     InvalidValidity(u8),
+    InvalidTime(String),
 }
 
 impl fmt::Display for ParseError {
@@ -20,6 +21,7 @@ impl fmt::Display for ParseError {
             ParseError::LineTooShort => write!(f, "Line too short"),
             ParseError::UnknownRecordType(t) => write!(f, "Unknown record type: {}", t as char),
             ParseError::InvalidValidity(v) => write!(f, "Invalid validity: {}", v as char),
+            ParseError::InvalidTime(ref str) => write!(f, "Invalid time: {}", str),
         }
     }
 }
@@ -32,6 +34,7 @@ impl error::Error for ParseError {
             ParseError::LineTooShort => "Line too short",
             ParseError::UnknownRecordType(..) => "Unknown record type",
             ParseError::InvalidValidity(..) => "Invalid validity",
+            ParseError::InvalidTime(..) => "Invalid time",
         }
     }
 
