@@ -4,6 +4,7 @@ use super::super::coordinate::{parse_coordinate, Point};
 use super::super::time::parse_time;
 use super::super::ParseError;
 
+#[derive(Debug)]
 pub struct BRecord {
     pub time: NaiveTime,
     pub location: Point,

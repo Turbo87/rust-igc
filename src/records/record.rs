@@ -2,6 +2,7 @@ use super::BRecord;
 use super::super::ParseError;
 
 /// IGC file record type representing a single line
+#[derive(Debug)]
 pub enum Record {
     /// FR manufacturer and FR serial no.
     A,
