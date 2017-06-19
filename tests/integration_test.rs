@@ -2,9 +2,9 @@ extern crate igc;
 
 use std::path::Path;
 use std::fs::File;
-use std::io::{BufReader, BufRead};
+use std::io::BufReader;
 
-use igc::parse_line;
+use igc::{parse, Record};
 
 #[test]
 fn it_works() {
@@ -16,12 +16,10 @@ fn it_works() {
     let file = File::open(path).unwrap();
     let buf_reader = BufReader::new(file);
 
-    let mut records = Vec::new();
-
-    for line in buf_reader.lines() {
-        let record = parse_line(line.unwrap().as_ref()).unwrap();
-        records.push(record);
-    }
+    let records: Vec<Record> = parse(buf_reader)
+        .filter(|result| result.is_ok())
+        .map(|result| result.unwrap())
+        .collect();
 
     assert_eq!(records.len(), 13533);
 }

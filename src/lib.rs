@@ -14,6 +14,8 @@ pub use error::ParseError;
 pub use records::*;
 pub use coordinate::Point;
 
+use std::io::BufRead;
+
 /// Parse a single line of an IGC flight log file
 ///
 /// *Currently only supports B records*
@@ -46,4 +48,8 @@ pub use coordinate::Point;
 /// ```
 pub fn parse_line(line: &str) -> Result<Record, ParseError> {
     Record::parse(line.as_bytes())
+}
+
+pub fn parse<R: BufRead>(reader: R) -> RecordsIter<R> {
+    RecordsIter { iter: reader.lines() }
 }
