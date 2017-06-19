@@ -1,11 +1,11 @@
-use std::io::{BufRead, Lines};
+use std::io::BufRead;
 use std::iter::Iterator;
 
 use super::Record;
-use super::super::{parse_line, ParseError};
+use super::super::ParseError;
 
 pub struct RecordsIter<R> {
-    pub iter: Lines<R>,
+    pub reader: R,
 }
 
 impl<R: BufRead> Iterator for RecordsIter<R> {
@@ -13,11 +13,20 @@ impl<R: BufRead> Iterator for RecordsIter<R> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().map(|line| parse_line(&line?))
-    }
+        let mut buf = Vec::new();
 
-    #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.iter.size_hint()
+        match self.reader.read_until(b'\n', &mut buf) {
+            Ok(0) => None,
+            Ok(_n) => {
+                if buf.ends_with(b"\n") {
+                    buf.pop();
+                    if buf.ends_with(b"\r") {
+                        buf.pop();
+                    }
+                }
+                Some(Record::parse(&buf))
+            }
+            Err(e) => Some(Err(ParseError::IoError(e)))
+        }
     }
 }

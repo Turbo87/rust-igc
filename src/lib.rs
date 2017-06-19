@@ -51,5 +51,5 @@ pub fn parse_line(line: &str) -> Result<Record, ParseError> {
 }
 
 pub fn parse<R: BufRead>(reader: R) -> RecordsIter<R> {
-    RecordsIter { iter: reader.lines() }
+    RecordsIter { reader: reader }
 }
