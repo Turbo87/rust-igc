@@ -24,7 +24,7 @@ named!(latitude <Deg<f64>>, do_parse!(
     min: below_60 >>
     min_dec: below_1000 >>
     invert: lat_invert >>
-    (parse(deg as f64, min as f64, min_dec as f64, invert))
+    (dms_to_deg(deg as f64, min as f64, min_dec as f64, invert))
 ));
 
 named!(lng_invert <bool>, alt!(
@@ -37,10 +37,10 @@ named!(longitude <Deg<f64>>, do_parse!(
     min: below_60 >>
     min_dec: below_1000 >>
     invert: lng_invert >>
-    (parse(deg as f64, min as f64, min_dec as f64, invert))
+    (dms_to_deg(deg as f64, min as f64, min_dec as f64, invert))
 ));
 
-fn parse(deg: f64, min: f64, min_dec: f64, invert: bool) -> Deg<f64> {
+fn dms_to_deg(deg: f64, min: f64, min_dec: f64, invert: bool) -> Deg<f64> {
     let value = Deg(deg + min / 60. + min_dec / 60000.);
     if invert { -value } else { value }
 }
