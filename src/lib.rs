@@ -5,52 +5,13 @@ extern crate chrono;
 #[macro_use]
 extern crate approx;
 
-mod b_record;
+pub mod records;
 pub mod coordinate;
 mod error;
 mod time;
 
 pub use error::ParseError;
-use b_record::BRecord;
-
-/// IGC file record type representing a single line
-pub enum Record {
-    /// FR manufacturer and FR serial no.
-    A,
-
-    /// Fix
-    B(BRecord),
-
-    /// Task/declaration
-    C,
-
-    /// Differential GPS
-    D,
-
-    /// Event
-    E,
-
-    /// Satellite constellation
-    F,
-
-    /// Security
-    G,
-
-    /// File header
-    H,
-
-    /// List of additional data included at end of each B-record
-    I,
-
-    /// List of additional data included at end of each K-record
-    J,
-
-    /// Frequent data, additional to the B-record
-    K,
-
-    /// Logbook/comments
-    L,
-}
+pub use records::*;
 
 /// Parse a single line of an IGC flight log file
 ///

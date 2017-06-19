@@ -1,8 +1,8 @@
 use chrono::NaiveTime;
 
-use super::coordinate::{parse_coordinate, Point};
-use super::time::parse_time;
-use super::ParseError;
+use super::super::coordinate::{parse_coordinate, Point};
+use super::super::time::parse_time;
+use super::super::ParseError;
 
 pub struct BRecord {
     pub time: NaiveTime,
