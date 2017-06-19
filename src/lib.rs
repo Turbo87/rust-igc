@@ -9,7 +9,9 @@ extern crate chrono;
 extern crate approx;
 
 pub mod parsers;
+mod error;
 
+pub use error::ParseError;
 use nom::IResult;
 use parsers::b_record::BRecord;
 
@@ -83,11 +85,11 @@ pub enum Record {
 /// }
 /// # }
 /// ```
-pub fn parse_line(line: &str) -> Result<Record, ()> {
+pub fn parse_line(line: &str) -> Result<Record, ParseError> {
     parse_line_from_bytes(line.as_bytes())
 }
 
-fn parse_line_from_bytes(bytes: &[u8]) -> Result<Record, ()> {
+fn parse_line_from_bytes(bytes: &[u8]) -> Result<Record, ParseError> {
     match bytes[0] {
         b'A' => Ok(Record::A),
         b'B' => parse_b_record(bytes).map(Record::B),
@@ -101,10 +103,10 @@ fn parse_line_from_bytes(bytes: &[u8]) -> Result<Record, ()> {
         b'J' => Ok(Record::J),
         b'K' => Ok(Record::K),
         b'L' => Ok(Record::L),
-        _ => Err(()),
+        _ => Err(ParseError::UnknownRecordType(bytes[0])),
     }
 }
 
-fn parse_b_record(bytes: &[u8]) -> Result<BRecord, ()> {
+fn parse_b_record(bytes: &[u8]) -> Result<BRecord, ParseError> {
     parsers::b_record::b_record(bytes)
 }

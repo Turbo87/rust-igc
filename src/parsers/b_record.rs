@@ -5,6 +5,7 @@ use super::coordinate::{coordinate, Point};
 use super::helpers::to_string;
 use super::numbers::{up_to_99999, down_to_minus_9999};
 use super::time::time;
+use super::super::ParseError;
 
 pub struct BRecord {
     pub time: NaiveTime,
@@ -15,39 +16,37 @@ pub struct BRecord {
     pub extra: Vec<u8>,
 }
 
-fn parse_validity(input: u8) -> Result<bool, ()> {
+fn parse_validity(input: u8) -> Result<bool, ParseError> {
     match input {
         b'A' => Ok(true),
         b'V' => Ok(false),
-        _ => Err(())
+        _ => Err(ParseError::InvalidValidity(input))
     }
 }
 
-fn parse_altitude(input: &[u8]) -> Result<Option<i32>, ()> {
+fn parse_altitude(input: &[u8]) -> Result<Option<i32>, ParseError> {
     debug_assert!(input.len() == 5);
 
     return if input == b"00000" {
         Ok(None)
     } else {
-        String::from_utf8(input.to_vec()).map_err(|_| ())
-            .and_then(|s| s.parse::<i32>().map_err(|_| ()))
-            .map(|value| Some(value))
+        Ok(Some(String::from_utf8(input.to_vec())?.parse::<i32>()?))
     }
 }
 
-pub fn b_record(input: &[u8]) -> Result<BRecord, ()> {
+pub fn b_record(input: &[u8]) -> Result<BRecord, ParseError> {
     debug_assert!(input[0] == b'B');
 
     let len = input.len();
     if len < 35 {
-        return Err(());
+        return Err(ParseError::LineTooShort);
     }
 
     let _time = time(&input[1..7]).unwrap().1;
     let _coordinate = coordinate(&input[7..24]).unwrap().1;
     let _valid = parse_validity(input[24])?;
-    let _pressure_altitude = parse_altitude(&input[25..30]).unwrap();
-    let _gnss_altitude = parse_altitude(&input[30..35]).unwrap();
+    let _pressure_altitude = parse_altitude(&input[25..30])?;
+    let _gnss_altitude = parse_altitude(&input[30..35])?;
     let _extra = input[35..].to_vec();
 
     Ok(BRecord {
