@@ -46,7 +46,7 @@ pub enum Record {
 
 impl Record {
     pub fn parse(bytes: &[u8]) -> Result<Record, ParseError> {
-        if bytes.len() == 0 {
+        if bytes.is_empty() {
             return Ok(Record::Empty);
         }
 
