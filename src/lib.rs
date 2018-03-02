@@ -1,5 +1,4 @@
 extern crate cgmath;
-extern crate chrono;
 
 #[cfg(test)]
 #[macro_use]
@@ -13,6 +12,7 @@ mod time;
 pub use error::ParseError;
 pub use records::*;
 pub use coordinate::Point;
+pub use time::Time;
 
 use std::io::BufRead;
 
@@ -24,18 +24,16 @@ use std::io::BufRead;
 ///
 /// ```
 /// # extern crate cgmath;
-/// # extern crate chrono;
 /// # extern crate igc;
 /// #
-/// # use igc::{parse_line, Record, Point};
+/// # use igc::{parse_line, Record, Point, Time};
 /// # use cgmath::Deg;
-/// # use chrono::NaiveTime;
 /// #
 /// # fn main() {
 /// let record = parse_line("B1414065016925N00953112EA021640228700309").unwrap();
 /// match record {
 ///     Record::B(record) => {
-///         assert_eq!(record.time, NaiveTime::from_hms(14, 14, 06));
+///         assert_eq!(record.time, Time::from_hms(14, 14, 06));
 ///         assert_eq!(record.location, Point::new(Deg(9.8852), Deg(50.28208333333333)));
 ///         assert_eq!(record.valid, true);
 ///         assert_eq!(record.pressure_altitude, Some(2164));
