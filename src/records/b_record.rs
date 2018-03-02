@@ -59,14 +59,13 @@ fn parse_altitude(input: &[u8]) -> Result<Option<i32>, ParseError> {
 
 #[cfg(test)]
 mod tests {
-    use cgmath::Deg;
     use super::{BRecord, parse_altitude, Point, Time};
 
     #[test]
     fn test_b_record() {
         let record = BRecord::parse(b"B1414065016925N00953112EA021640228700309").unwrap();
         assert_eq!(record.time, Time::from_hms(14, 14, 06));
-        assert_eq!(record.location, Point::new(Deg(9.8852), Deg(50.28208333333333)));
+        assert_eq!(record.location, Point::new(9.8852, 50.28208333333333));
         assert_eq!(record.valid, true);
         assert_eq!(record.pressure_altitude, Some(2164));
         assert_eq!(record.gnss_altitude, Some(2287));
