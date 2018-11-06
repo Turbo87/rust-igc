@@ -34,7 +34,7 @@ impl<R: io::Read> Reader<R> {
         RecordsIter::new(self)
     }
 
-    fn read_record(&mut self) -> Option<Result<Record>> {
+    fn next_record(&mut self) -> Option<Result<Record>> {
         self.read_line()
             .map(|result| result
                 .and_then(|line| self.parse_line(&line)))
@@ -87,6 +87,6 @@ impl<'r, R: io::Read> Iterator for RecordsIter<'r, R> {
     type Item = Result<Record>;
 
     fn next(&mut self) -> Option<Result<Record>> {
-        self.reader.read_record()
+        self.reader.next_record()
     }
 }
