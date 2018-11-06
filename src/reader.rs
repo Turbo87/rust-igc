@@ -35,6 +35,12 @@ impl<R: io::Read> Reader<R> {
     }
 
     fn read_record(&mut self) -> Option<Result<Record, ParseError>> {
+        self.read_line()
+            .map(|result| result
+                .and_then(|line| Record::parse(&line)))
+    }
+
+    fn read_line(&mut self) -> Option<Result<Vec<u8>, ParseError>> {
         let mut buf = Vec::new();
 
         match self.reader.read_until(b'\n', &mut buf) {
@@ -46,7 +52,7 @@ impl<R: io::Read> Reader<R> {
                         buf.pop();
                     }
                 }
-                Some(Record::parse(&buf))
+                Some(Ok(buf))
             }
             Err(e) => Some(Err(ParseError::IoError(e)))
         }
