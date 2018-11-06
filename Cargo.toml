@@ -4,4 +4,4 @@ version = "0.1.0"
 authors = ["Tobias Bieniek <tobias.bieniek@gmail.com>"]
 
 [dev-dependencies]
-approx = "^0.1.1"
+approx = "^0.3.0"
