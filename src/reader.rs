@@ -2,8 +2,8 @@ use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
 
-use error::Result;
-use records::Record;
+use error::{Result, ParseError};
+use records::*;
 
 #[derive(Debug)]
 pub struct Reader<R> {
@@ -59,7 +59,25 @@ impl<R: io::Read> Reader<R> {
     }
 
     fn parse_line(&mut self, bytes: &[u8]) -> Result<Record> {
-        Record::parse(bytes)
+        if bytes.is_empty() {
+            return Ok(Record::Empty);
+        }
+
+        match bytes[0] {
+            b'A' => Ok(Record::A),
+            b'B' => BRecord::parse(bytes).map(Record::B),
+            b'C' => Ok(Record::C),
+            b'D' => Ok(Record::D),
+            b'E' => Ok(Record::E),
+            b'F' => Ok(Record::F),
+            b'G' => Ok(Record::G),
+            b'H' => Ok(Record::H),
+            b'I' => Ok(Record::I),
+            b'J' => Ok(Record::J),
+            b'K' => Ok(Record::K),
+            b'L' => Ok(Record::L),
+            _ => Err(ParseError::UnknownRecordType(bytes[0])),
+        }
     }
 }
 
