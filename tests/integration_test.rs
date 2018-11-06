@@ -1,10 +1,7 @@
 extern crate igc;
 
 use std::path::Path;
-use std::fs::File;
-use std::io::BufReader;
-
-use igc::{parse, Record};
+use igc::{Reader, Record};
 
 #[test]
 fn it_works() {
@@ -13,8 +10,7 @@ fn it_works() {
         .join("fixtures")
         .join("654g6ng1.igc");
 
-    let file = File::open(path).unwrap();
-    let buf_reader = BufReader::new(file);
+    let mut reader = Reader::from_path(path).unwrap();
 
     let mut result_count = 0;
     let mut error_count = 0;
@@ -33,7 +29,7 @@ fn it_works() {
     let mut l_record_count = 0;
     let mut empty_record_count = 0;
 
-    for result in parse(buf_reader) {
+    for result in reader.records() {
         result_count += 1;
 
         match result {

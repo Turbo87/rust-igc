@@ -2,9 +2,8 @@ extern crate igc;
 
 use std::env;
 use std::fs;
-use std::io::BufReader;
 
-use igc::parse;
+use igc::Reader;
 
 fn main() {
     // collect command line arguments
@@ -15,11 +14,10 @@ fn main() {
         let path: std::path::PathBuf = entry.unwrap().path();
 
         // open file in buffered reader
-        let file = fs::File::open(path.clone()).unwrap();
-        let buf_reader = BufReader::new(file);
+        let mut reader = Reader::from_path(path.clone()).unwrap();
 
         // parse file into results vector
-        let results = parse(buf_reader).collect::<Vec<_>>();
+        let results = reader.records().collect::<Vec<_>>();
 
         // check if the results contain errors
         if !results.iter().all(|result| result.is_ok()) {
