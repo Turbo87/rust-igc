@@ -1,6 +1,6 @@
 use super::super::coordinate::{parse_coordinate, Point};
 use super::super::time::{parse_time, Time};
-use super::super::ParseError;
+use super::super::{Result, ParseError};
 
 #[derive(Debug)]
 pub struct BRecord {
@@ -13,7 +13,7 @@ pub struct BRecord {
 }
 
 impl BRecord {
-    pub fn parse(input: &[u8]) -> Result<Self, ParseError> {
+    pub(crate) fn parse(input: &[u8]) -> Result<Self> {
         debug_assert_eq!(input[0], b'B');
 
         let len = input.len();
@@ -39,7 +39,7 @@ impl BRecord {
     }
 }
 
-fn parse_validity(input: u8) -> Result<bool, ParseError> {
+fn parse_validity(input: u8) -> Result<bool> {
     match input {
         b'A' => Ok(true),
         b'V' => Ok(false),
@@ -47,7 +47,7 @@ fn parse_validity(input: u8) -> Result<bool, ParseError> {
     }
 }
 
-fn parse_altitude(input: &[u8]) -> Result<Option<i32>, ParseError> {
+fn parse_altitude(input: &[u8]) -> Result<Option<i32>> {
     debug_assert_eq!(input.len(), 5);
 
     Ok(if input == b"00000" {
