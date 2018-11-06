@@ -54,7 +54,7 @@ impl<R: io::Read> Reader<R> {
                 }
                 Some(Ok(buf))
             }
-            Err(e) => Some(Err(ParseError::IoError(e)))
+            Err(e) => Some(Err(e.into()))
         }
     }
 }
