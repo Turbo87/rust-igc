@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
 
-use error::ParseError;
+use error::Result;
 use records::Record;
 
 #[derive(Debug)]
@@ -13,7 +13,7 @@ pub struct Reader<R> {
 
 impl Reader<Reader<File>> {
     /// Create a new IGC parser for the given file path.
-    pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Reader<File>, ParseError> {
+    pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Reader<File>> {
         Ok(Reader::new(File::open(path)?))
     }
 }
@@ -34,13 +34,13 @@ impl<R: io::Read> Reader<R> {
         RecordsIter::new(self)
     }
 
-    fn read_record(&mut self) -> Option<Result<Record, ParseError>> {
+    fn read_record(&mut self) -> Option<Result<Record>> {
         self.read_line()
             .map(|result| result
                 .and_then(|line| Record::parse(&line)))
     }
 
-    fn read_line(&mut self) -> Option<Result<Vec<u8>, ParseError>> {
+    fn read_line(&mut self) -> Option<Result<Vec<u8>>> {
         let mut buf = Vec::new();
 
         match self.reader.read_until(b'\n', &mut buf) {
@@ -80,9 +80,9 @@ impl<'r, R: io::Read> RecordsIter<'r, R> {
 }
 
 impl<'r, R: io::Read> Iterator for RecordsIter<'r, R> {
-    type Item = Result<Record, ParseError>;
+    type Item = Result<Record>;
 
-    fn next(&mut self) -> Option<Result<Record, ParseError>> {
+    fn next(&mut self) -> Option<Result<Record>> {
         self.reader.read_record()
     }
 }

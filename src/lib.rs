@@ -9,7 +9,7 @@ mod time;
 mod reader;
 
 pub use reader::Reader;
-pub use error::ParseError;
+pub use error::*;
 pub use records::*;
 pub use coordinate::Point;
 pub use time::Time;

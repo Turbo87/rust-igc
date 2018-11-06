@@ -1,8 +1,12 @@
 use std::error;
 use std::fmt;
 use std::io;
+use std::result;
 use std::num;
 use std::string;
+
+/// A type alias for `Result<T, ParseError>`.
+pub type Result<T> = result::Result<T, ParseError>;
 
 #[derive(Debug)]
 pub enum ParseError {
@@ -75,3 +79,4 @@ impl From<num::ParseIntError> for ParseError {
         ParseError::InvalidIntNumber(err)
     }
 }
+
