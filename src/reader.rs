@@ -37,7 +37,7 @@ impl<R: io::Read> Reader<R> {
     fn read_record(&mut self) -> Option<Result<Record>> {
         self.read_line()
             .map(|result| result
-                .and_then(|line| Record::parse(&line)))
+                .and_then(|line| self.parse_line(&line)))
     }
 
     fn read_line(&mut self) -> Option<Result<Vec<u8>>> {
@@ -56,6 +56,10 @@ impl<R: io::Read> Reader<R> {
             }
             Err(e) => Some(Err(e.into()))
         }
+    }
+
+    fn parse_line(&mut self, bytes: &[u8]) -> Result<Record> {
+        Record::parse(bytes)
     }
 }
 
