@@ -1,17 +1,5 @@
 use super::ParseError;
 
-#[derive(PartialEq, Clone, Copy, Debug)]
-pub struct Point {
-    pub longitude: f64,
-    pub latitude: f64,
-}
-
-impl Point {
-    pub fn new(longitude: f64, latitude: f64) -> Point {
-        Point { longitude, latitude }
-    }
-}
-
 fn parse_latitude_invert(input: u8) -> Option<bool> {
     match input {
         b'N' => Some(false),
@@ -77,18 +65,9 @@ fn dms_to_deg(deg: f64, min: f64, min_dec: f64, invert: bool) -> f64 {
     if invert { -value } else { value }
 }
 
-pub fn parse_coordinate(input: &[u8]) -> Result<Point, ParseError> {
-    debug_assert_eq!(input.len(), 17);
-
-    let latitude = parse_latitude(&input[0..8])?;
-    let longitude = parse_longitude(&input[8..17])?;
-
-    Ok(Point::new(longitude, latitude))
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{parse_latitude, parse_longitude, parse_coordinate};
+    use super::{parse_latitude, parse_longitude};
 
     #[test]
     fn test_latitude() {
@@ -115,14 +94,5 @@ mod tests {
         assert!(parse_longitude(b"00060000E").is_err());
         assert!(parse_longitude(b"00000000X").is_err());
         assert!(parse_longitude(b"00000x00E").is_err());
-    }
-
-    #[test]
-    fn test_coordinate() {
-        let result = parse_coordinate(b"5016925N00953112E");
-        assert!(result.is_ok());
-        let point = result.unwrap();
-        assert_relative_eq!(point.longitude, 9.8852);
-        assert_relative_eq!(point.latitude, 50.28208333333333);
     }
 }

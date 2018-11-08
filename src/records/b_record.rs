@@ -1,11 +1,12 @@
-use super::super::coordinate::{parse_coordinate, Point};
+use super::super::coordinate::{parse_latitude, parse_longitude};
 use super::super::time::{parse_time, Time};
 use super::super::{Result, ParseError};
 
 #[derive(Debug)]
 pub struct BRecord {
     pub time: Time,
-    pub location: Point,
+    pub longitude: f64,
+    pub latitude: f64,
     pub valid: bool,
     pub pressure_altitude: Option<i32>,
     pub gnss_altitude: Option<i32>,
@@ -22,7 +23,8 @@ impl BRecord {
         }
 
         let _time = parse_time(&input[1..7])?;
-        let _coordinate = parse_coordinate(&input[7..24].as_bytes())?;
+        let latitude = parse_latitude(&input[7..15].as_bytes())?;
+        let longitude = parse_longitude(&input[15..24].as_bytes())?;
         let _valid = parse_validity(input[24..25].as_bytes()[0])?;
         let _pressure_altitude = parse_altitude(&input[25..30].as_bytes())?;
         let _gnss_altitude = parse_altitude(&input[30..35].as_bytes())?;
@@ -30,7 +32,8 @@ impl BRecord {
 
         Ok(BRecord {
             time: _time,
-            location: _coordinate,
+            latitude,
+            longitude,
             valid: _valid,
             pressure_altitude: _pressure_altitude,
             gnss_altitude: _gnss_altitude,
@@ -59,13 +62,14 @@ fn parse_altitude(input: &[u8]) -> Result<Option<i32>> {
 
 #[cfg(test)]
 mod tests {
-    use super::{BRecord, parse_altitude, Point, Time};
+    use super::{BRecord, parse_altitude, Time};
 
     #[test]
     fn test_b_record() {
         let record = BRecord::parse("B1414065016925N00953112EA021640228700309").unwrap();
         assert_eq!(record.time, Time::from_hms(14, 14, 06));
-        assert_eq!(record.location, Point::new(9.8852, 50.28208333333333));
+        assert_relative_eq!(record.longitude, 9.8852);
+        assert_relative_eq!(record.latitude, 50.28208333333333);
         assert_eq!(record.valid, true);
         assert_eq!(record.pressure_altitude, Some(2164));
         assert_eq!(record.gnss_altitude, Some(2287));
