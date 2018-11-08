@@ -18,9 +18,15 @@ impl Time {
 }
 
 pub fn parse_time(input: &[u8]) -> Result<Time, ParseError> {
-    debug_assert_eq!(input.len(), 6);
-
     let str = String::from_utf8(input.to_vec())?;
+
+    if input.len() != 6 {
+        return Err(ParseError::InvalidTime(str));
+    }
+
+    if !input.is_ascii() {
+        return Err(ParseError::InvalidTime(str));
+    }
 
     let hour = str[0..2].parse::<u8>()?;
     let minute = str[2..4].parse::<u8>()?;
@@ -43,5 +49,19 @@ mod tests {
         assert_eq!(parse_time(b"123456").unwrap(), Time::from_hms(12, 34, 56));
         assert_eq!(parse_time(b"235959").unwrap(), Time::from_hms(23, 59, 59));
         assert!(parse_time(b"612345").is_err());
+    }
+
+    proptest! {
+        #[test]
+        #[allow(unused_must_use)]
+        fn doesnt_crash(s in r"\PC*") {
+            parse_time(s.as_bytes());
+        }
+
+        #[test]
+        fn parses_all_valid_times(h in 0..24u8, m in 0..60u8, s in 0..60u8) {
+            let time = parse_time(format!("{:02}{:02}{:02}", h, m, s).as_bytes()).unwrap();
+            prop_assert_eq!(time, Time::from_hms(h, m, s));
+        }
     }
 }
