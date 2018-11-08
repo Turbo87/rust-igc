@@ -1,4 +1,4 @@
-use super::ParseError;
+use super::super::ParseError;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Time {

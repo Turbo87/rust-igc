@@ -1,4 +1,4 @@
-use super::ParseError;
+use super::super::ParseError;
 
 fn parse_latitude_invert(input: u8) -> Option<bool> {
     match input {

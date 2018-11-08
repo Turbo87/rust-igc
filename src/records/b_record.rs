@@ -1,5 +1,5 @@
-use super::super::coordinate::{parse_latitude, parse_longitude};
-use super::super::time::{parse_time, Time};
+use super::super::parsers::coordinate::{parse_latitude, parse_longitude};
+use super::super::parsers::time::{parse_time, Time};
 use super::super::{Result, ParseError};
 
 #[derive(Debug)]

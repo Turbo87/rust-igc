@@ -9,12 +9,11 @@ extern crate approx;
 extern crate proptest;
 
 mod records;
-mod coordinate;
+mod parsers;
 mod error;
-mod time;
 mod reader;
 
 pub use reader::Reader;
 pub use error::*;
 pub use records::*;
-pub use time::Time;
+pub use parsers::time::Time;
