@@ -5,3 +5,4 @@ authors = ["Tobias Bieniek <tobias.bieniek@gmail.com>"]
 
 [dev-dependencies]
 approx = "^0.3.0"
+proptest = "0.8.7"

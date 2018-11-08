@@ -2,6 +2,10 @@
 #[macro_use]
 extern crate approx;
 
+#[cfg(test)]
+#[macro_use]
+extern crate proptest;
+
 mod records;
 mod coordinate;
 mod error;
