@@ -14,6 +14,8 @@ pub struct Reader<R> {
     reader: io::BufReader<R>,
 
     encoding: BufEncoding,
+
+    line: usize,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -35,6 +37,7 @@ impl<R: io::Read> Reader<R> {
         Reader {
             reader: io::BufReader::new(rdr),
             encoding: BufEncoding::Auto,
+            line: 0,
         }
     }
 
@@ -84,6 +87,7 @@ impl<R: io::Read> Reader<R> {
                         buf.pop();
                     }
                 }
+                self.line += 1;
                 Some(Ok(buf))
             }
             Err(e) => Some(Err(e.into()))
