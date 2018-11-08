@@ -23,8 +23,8 @@ impl BRecord {
         }
 
         let _time = parse_time(&input[1..7])?;
-        let latitude = parse_latitude(&input[7..15].as_bytes())?;
-        let longitude = parse_longitude(&input[15..24].as_bytes())?;
+        let latitude = parse_latitude(&input[7..15])?;
+        let longitude = parse_longitude(&input[15..24])?;
         let _valid = parse_validity(input[24..25].as_bytes()[0])?;
         let _pressure_altitude = parse_altitude(&input[25..30].as_bytes())?;
         let _gnss_altitude = parse_altitude(&input[30..35].as_bytes())?;
