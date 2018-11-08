@@ -1,14 +1,26 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
+use std::result::{Result as StdResult};
+
+use encoding::{Encoding, DecoderTrap};
+use encoding::all::{ASCII, ISO_8859_1, UTF_8};
 
 use error::{Result, ParseError};
 use records::*;
 
-#[derive(Debug)]
 pub struct Reader<R> {
     /// The underlying reader.
     reader: io::BufReader<R>,
+
+    encoding: BufEncoding,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+enum BufEncoding {
+    Auto,
+    UTF8,
+    Latin1,
 }
 
 impl Reader<Reader<File>> {
@@ -22,6 +34,7 @@ impl<R: io::Read> Reader<R> {
     fn new(rdr: R) -> Reader<R> {
         Reader {
             reader: io::BufReader::new(rdr),
+            encoding: BufEncoding::Auto,
         }
     }
 
@@ -35,12 +48,31 @@ impl<R: io::Read> Reader<R> {
     }
 
     fn next_record(&mut self) -> Option<Result<Record>> {
-        self.read_line()
-            .map(|result| result
-                .and_then(|line| self.parse_line(&line)))
+        loop {
+            // 1. read until line break
+            let bytes = match self.read_line() {
+                None => return None,
+                Some(Err(error)) => return Some(Err(ParseError::IoError(error))),
+                Some(Ok(bytes)) => bytes,
+            };
+
+            // 2. if empty -> goto 1.
+            if bytes.is_empty() {
+                continue;
+            }
+
+            // 3. decode bytes to string
+            let line = match self.decode_bytes(&bytes) {
+                Err(error) => return Some(Err(ParseError::Encoding(error))),
+                Ok(line) => line,
+            };
+
+            // 4. parse string
+            return Some(self.parse_line(&line));
+        }
     }
 
-    fn read_line(&mut self) -> Option<Result<Vec<u8>>> {
+    fn read_line(&mut self) -> Option<StdResult<Vec<u8>, io::Error>> {
         let mut buf = Vec::new();
 
         match self.reader.read_until(b'\n', &mut buf) {
@@ -58,14 +90,35 @@ impl<R: io::Read> Reader<R> {
         }
     }
 
-    fn parse_line(&mut self, bytes: &[u8]) -> Result<Record> {
-        if bytes.is_empty() {
-            return Ok(Record::Empty);
-        }
+    fn decode_bytes(&mut self, bytes: &[u8]) -> StdResult<String, std::borrow::Cow<'static, str>> {
+        return match self.encoding {
+            BufEncoding::UTF8 => UTF_8.decode(bytes, DecoderTrap::Strict),
+            BufEncoding::Latin1 => ISO_8859_1.decode(bytes, DecoderTrap::Strict),
+            BufEncoding::Auto => {
+                if let Ok(result) = ASCII.decode(bytes, DecoderTrap::Strict) {
+                    return Ok(result);
+                }
 
-        match bytes[0] {
+                if let Ok(result) = UTF_8.decode(bytes, DecoderTrap::Strict) {
+                    self.encoding = BufEncoding::UTF8;
+                    return Ok(result);
+                }
+
+                return match ISO_8859_1.decode(bytes, DecoderTrap::Strict) {
+                    Ok(result) => {
+                        self.encoding = BufEncoding::Latin1;
+                        Ok(result)
+                    },
+                    Err(error) => Err(error)
+                }
+            },
+        }
+    }
+
+    fn parse_line(&mut self, line: &str) -> Result<Record> {
+        match line.as_bytes()[0] {
             b'A' => Ok(Record::A),
-            b'B' => BRecord::parse(bytes).map(Record::B),
+            b'B' => BRecord::parse(line).map(Record::B),
             b'C' => Ok(Record::C),
             b'D' => Ok(Record::D),
             b'E' => Ok(Record::E),
@@ -76,7 +129,7 @@ impl<R: io::Read> Reader<R> {
             b'J' => Ok(Record::J),
             b'K' => Ok(Record::K),
             b'L' => Ok(Record::L),
-            _ => Err(ParseError::UnknownRecordType(bytes[0])),
+            _ => Err(ParseError::UnknownRecordType(line.chars().next().unwrap())),
         }
     }
 }
@@ -106,5 +159,49 @@ impl<'r, R: io::Read> Iterator for RecordsIter<'r, R> {
 
     fn next(&mut self) -> Option<Result<Record>> {
         self.reader.next_record()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Reader;
+
+    #[test]
+    fn test_ascii() {
+        use std::io::Cursor;
+        use super::BufEncoding;
+
+        let input = Cursor::new(b"HFPLTPILOT:John Doe\n");
+        let mut reader = Reader::from_reader(input);
+
+        let _: Vec<_> = reader.records().collect();
+
+        assert_eq!(reader.encoding, BufEncoding::Auto);
+    }
+
+    #[test]
+    fn test_utf8() {
+        use std::io::Cursor;
+        use super::BufEncoding;
+
+        let input = Cursor::new("HFPLTPILOT:Jörg Müller\n".as_bytes());
+        let mut reader = Reader::from_reader(input);
+
+        let _: Vec<_> = reader.records().collect();
+
+        assert_eq!(reader.encoding, BufEncoding::UTF8);
+    }
+
+    #[test]
+    fn test_latin1() {
+        use std::io::Cursor;
+        use super::BufEncoding;
+
+        let input = Cursor::new(b"HFPLTPILOT:J\xf6rg M\xfcller\n");
+        let mut reader = Reader::from_reader(input);
+
+        let _: Vec<_> = reader.records().collect();
+
+        assert_eq!(reader.encoding, BufEncoding::Latin1);
     }
 }

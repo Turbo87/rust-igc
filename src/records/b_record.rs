@@ -13,8 +13,8 @@ pub struct BRecord {
 }
 
 impl BRecord {
-    pub(crate) fn parse(input: &[u8]) -> Result<Self> {
-        debug_assert_eq!(input[0], b'B');
+    pub(crate) fn parse(input: &str) -> Result<Self> {
+        debug_assert_eq!(&input[0..1], "B");
 
         let len = input.len();
         if len < 35 {
@@ -22,11 +22,11 @@ impl BRecord {
         }
 
         let _time = parse_time(&input[1..7])?;
-        let _coordinate = parse_coordinate(&input[7..24])?;
-        let _valid = parse_validity(input[24])?;
-        let _pressure_altitude = parse_altitude(&input[25..30])?;
-        let _gnss_altitude = parse_altitude(&input[30..35])?;
-        let _extra = input[35..].to_vec();
+        let _coordinate = parse_coordinate(&input[7..24].as_bytes())?;
+        let _valid = parse_validity(input[24..25].as_bytes()[0])?;
+        let _pressure_altitude = parse_altitude(&input[25..30].as_bytes())?;
+        let _gnss_altitude = parse_altitude(&input[30..35].as_bytes())?;
+        let _extra = input[35..].as_bytes().to_vec();
 
         Ok(BRecord {
             time: _time,
@@ -63,7 +63,7 @@ mod tests {
 
     #[test]
     fn test_b_record() {
-        let record = BRecord::parse(b"B1414065016925N00953112EA021640228700309").unwrap();
+        let record = BRecord::parse("B1414065016925N00953112EA021640228700309").unwrap();
         assert_eq!(record.time, Time::from_hms(14, 14, 06));
         assert_eq!(record.location, Point::new(9.8852, 50.28208333333333));
         assert_eq!(record.valid, true);

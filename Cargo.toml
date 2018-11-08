@@ -3,6 +3,9 @@ name = "igc"
 version = "0.1.0"
 authors = ["Tobias Bieniek <tobias.bieniek@gmail.com>"]
 
+[dependencies]
+encoding = "0.2.33"
+
 [dev-dependencies]
 approx = "^0.3.0"
 proptest = "0.8.7"

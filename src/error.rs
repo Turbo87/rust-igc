@@ -11,10 +11,11 @@ pub type Result<T> = result::Result<T, ParseError>;
 #[derive(Debug)]
 pub enum ParseError {
     IoError(io::Error),
+    Encoding(std::borrow::Cow<'static, str>),
     InvalidCharacters(string::FromUtf8Error),
     InvalidIntNumber(num::ParseIntError),
     LineTooShort,
-    UnknownRecordType(u8),
+    UnknownRecordType(char),
     InvalidValidity(u8),
     InvalidTime(String),
     InvalidLatitude(String),
@@ -25,10 +26,11 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             ParseError::IoError(ref err) => err.fmt(f),
+            ParseError::Encoding(ref err) => write!(f, "Invalid encoding: {}", err),
             ParseError::InvalidCharacters(ref err) => err.fmt(f),
             ParseError::InvalidIntNumber(ref err) => err.fmt(f),
             ParseError::LineTooShort => write!(f, "Line too short"),
-            ParseError::UnknownRecordType(t) => write!(f, "Unknown record type: {}", t as char),
+            ParseError::UnknownRecordType(t) => write!(f, "Unknown record type: {}", t),
             ParseError::InvalidValidity(v) => write!(f, "Invalid validity: {}", v as char),
             ParseError::InvalidTime(ref str) => write!(f, "Invalid time: {}", str),
             ParseError::InvalidLatitude(ref str) => write!(f, "Invalid latitude: {}", str),
@@ -41,6 +43,7 @@ impl error::Error for ParseError {
     fn description(&self) -> &str {
         match *self {
             ParseError::IoError(ref err) => err.description(),
+            ParseError::Encoding(ref err) => "Invalid encoding",
             ParseError::InvalidCharacters(ref err) => err.description(),
             ParseError::InvalidIntNumber(ref err) => err.description(),
             ParseError::LineTooShort => "Line too short",

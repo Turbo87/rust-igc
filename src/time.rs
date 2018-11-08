@@ -17,23 +17,21 @@ impl Time {
     pub fn second(&self) -> u8 { self.second }
 }
 
-pub fn parse_time(input: &[u8]) -> Result<Time, ParseError> {
-    let str = String::from_utf8(input.to_vec())?;
-
+pub fn parse_time(input: &str) -> Result<Time, ParseError> {
     if input.len() != 6 {
-        return Err(ParseError::InvalidTime(str));
+        return Err(ParseError::InvalidTime(input.into()));
     }
 
     if !input.is_ascii() {
-        return Err(ParseError::InvalidTime(str));
+        return Err(ParseError::InvalidTime(input.into()));
     }
 
-    let hour = str[0..2].parse::<u8>()?;
-    let minute = str[2..4].parse::<u8>()?;
-    let second = str[4..6].parse::<u8>()?;
+    let hour = input[0..2].parse::<u8>()?;
+    let minute = input[2..4].parse::<u8>()?;
+    let second = input[4..6].parse::<u8>()?;
 
     if hour >= 24 || minute >= 60 || second >= 60 {
-        return Err(ParseError::InvalidTime(str));
+        return Err(ParseError::InvalidTime(input.into()));
     }
 
     Ok(Time::from_hms(hour, minute, second))
@@ -45,22 +43,22 @@ mod tests {
 
     #[test]
     fn test_time() {
-        assert_eq!(parse_time(b"000000").unwrap(), Time::from_hms(0, 0, 0));
-        assert_eq!(parse_time(b"123456").unwrap(), Time::from_hms(12, 34, 56));
-        assert_eq!(parse_time(b"235959").unwrap(), Time::from_hms(23, 59, 59));
-        assert!(parse_time(b"612345").is_err());
+        assert_eq!(parse_time("000000").unwrap(), Time::from_hms(0, 0, 0));
+        assert_eq!(parse_time("123456").unwrap(), Time::from_hms(12, 34, 56));
+        assert_eq!(parse_time("235959").unwrap(), Time::from_hms(23, 59, 59));
+        assert!(parse_time("612345").is_err());
     }
 
     proptest! {
         #[test]
         #[allow(unused_must_use)]
         fn doesnt_crash(s in r"\PC*") {
-            parse_time(s.as_bytes());
+            parse_time(&s);
         }
 
         #[test]
         fn parses_all_valid_times(h in 0..24u8, m in 0..60u8, s in 0..60u8) {
-            let time = parse_time(format!("{:02}{:02}{:02}", h, m, s).as_bytes()).unwrap();
+            let time = parse_time(&format!("{:02}{:02}{:02}", h, m, s)).unwrap();
             prop_assert_eq!(time, Time::from_hms(h, m, s));
         }
     }
