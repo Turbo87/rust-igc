@@ -20,6 +20,19 @@ pub enum ParseError {
     InvalidTime(String),
     InvalidLatitude(String),
     InvalidLongitude(String),
+    Unexpected {
+        expected: String,
+        found: String,
+    },
+}
+
+impl ParseError {
+    pub fn unexpected<A: Into<String>, B: Into<String>>(expected: A, found: B) -> ParseError {
+        ParseError::Unexpected {
+            expected: expected.into(),
+            found: found.into(),
+        }
+    }
 }
 
 impl fmt::Display for ParseError {
@@ -35,6 +48,7 @@ impl fmt::Display for ParseError {
             ParseError::InvalidTime(ref str) => write!(f, "Invalid time: {}", str),
             ParseError::InvalidLatitude(ref str) => write!(f, "Invalid latitude: {}", str),
             ParseError::InvalidLongitude(ref str) => write!(f, "Invalid longitude: {}", str),
+            ParseError::Unexpected { ref expected, ref found } => write!(f, "Expected: {}; Found: {}", expected, found),
         }
     }
 }
@@ -52,6 +66,7 @@ impl error::Error for ParseError {
             ParseError::InvalidTime(..) => "Invalid time",
             ParseError::InvalidLatitude(..) => "Invalid latitude",
             ParseError::InvalidLongitude(..) => "Invalid longitude",
+            ParseError::Unexpected { .. } => "Unexpected data found",
         }
     }
 

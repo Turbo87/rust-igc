@@ -6,6 +6,10 @@ extern crate approx;
 
 #[cfg(test)]
 #[macro_use]
+extern crate galvanic_assert;
+
+#[cfg(test)]
+#[macro_use]
 extern crate proptest;
 
 mod records;

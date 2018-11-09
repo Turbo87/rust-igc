@@ -8,4 +8,5 @@ encoding = "0.2.33"
 
 [dev-dependencies]
 approx = "^0.3.0"
+galvanic-assert = "0.8.7"
 proptest = "0.8.7"
