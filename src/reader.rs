@@ -129,7 +129,7 @@ impl<R: io::Read> Reader<R> {
             b'F' => Ok(Record::F),
             b'G' => Ok(Record::G),
             b'H' => Ok(Record::H),
-            b'I' => Ok(Record::I),
+            b'I' => IRecord::parse(line).map(Record::I),
             b'J' => Ok(Record::J),
             b'K' => Ok(Record::K),
             b'L' => Ok(Record::L),
