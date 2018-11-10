@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-
-use super::super::{Result, ParseError};
+use ::{Result, ParseError};
+use ::parsers::additions::AdditionsMap;
 
 // Examples:
 //
@@ -9,7 +8,7 @@ use super::super::{Result, ParseError};
 
 #[derive(Debug)]
 pub struct IRecord {
-    additions: HashMap<String, (u8, u8)>,
+    additions: AdditionsMap,
 }
 
 impl IRecord {
@@ -36,7 +35,7 @@ impl IRecord {
             ));
         }
 
-        let mut additions = HashMap::with_capacity(number_of_additions);
+        let mut additions = AdditionsMap::with_capacity(number_of_additions);
 
         for i in 0..number_of_additions {
             let start_byte = &input[(3 + i * 7)..(3 + i * 7 + 2)];
