@@ -1,5 +1,5 @@
-use ::{Result, ParseError};
-use ::parsers::additions::AdditionsMap;
+use ::Result;
+use ::parsers::additions::{AdditionsMap, parse_from_record_line};
 
 // Examples:
 //
@@ -15,43 +15,8 @@ impl IRecord {
     pub(crate) fn parse(input: &str) -> Result<Self> {
         debug_assert_eq!(&input[0..1], "I");
 
-        if !input.is_ascii() {
-            return Err(ParseError::unexpected("ASCII characters", input));
-        }
-
-        let input_length = input.len();
-        if input_length < 3 {
-            return Err(ParseError::unexpected("at least 3 characters", input));
-        }
-
-        let number_of_additions = &input[1..3];
-        let number_of_additions = number_of_additions.parse()
-            .map_err(|_| ParseError::unexpected("digits", number_of_additions))?;
-
-        if number_of_additions * 7 != input_length - 3 {
-            return Err(ParseError::unexpected(
-                format!("{} additions (= {} characters)", number_of_additions, number_of_additions * 7,),
-                format!("{} characters", input_length - 3),
-            ));
-        }
-
-        let mut additions = AdditionsMap::with_capacity(number_of_additions);
-
-        for i in 0..number_of_additions {
-            let start_byte = &input[(3 + i * 7)..(3 + i * 7 + 2)];
-            let start_byte = start_byte.parse()
-                .map_err(|_| ParseError::unexpected("digits", start_byte))?;
-
-            let end_byte = &input[(3 + i * 7 + 2)..(3 + i * 7 + 4)];
-            let end_byte = end_byte.parse()
-                .map_err(|_| ParseError::unexpected("digits", end_byte))?;
-
-            let code = &input[(3 + i * 7 + 4)..(3 + i * 7 + 7)];
-
-            additions.insert(code.into(), (start_byte, end_byte));
-        }
-
-        Ok(IRecord { additions })
+        parse_from_record_line(input)
+            .map(|additions| IRecord { additions })
     }
 }
 
