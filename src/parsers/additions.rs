@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use ::{Result, ParseError};
 
+pub type AdditionsMap = HashMap<String, String>;
 pub type AdditionsDeclMap = HashMap<String, (u8, u8)>;
 
 pub fn parse_from_record_line(input: &str) -> Result<AdditionsDeclMap> {
@@ -49,4 +50,58 @@ pub fn parse_from_record_line(input: &str) -> Result<AdditionsDeclMap> {
     }
 
     Ok(additions)
+}
+
+pub fn parse_additions(input: &str, additions_decl: &AdditionsDeclMap) -> Result<AdditionsMap> {
+    debug_assert!(input.is_ascii());
+
+    let input_length = input.len();
+
+    let mut additions = AdditionsMap::with_capacity(additions_decl.len());
+
+    for (code, &(start_byte, end_byte)) in additions_decl {
+        if input_length < end_byte as usize {
+            return Err(ParseError::unexpected(
+                format!("at least {} characters", end_byte),
+                format!("{} characters", input_length)));
+        }
+
+        let value = &input[(start_byte as usize - 1)..(end_byte as usize)];
+
+        additions.insert(code.clone(), value.into());
+    }
+
+    Ok(additions)
+}
+
+#[cfg(test)]
+mod tests {
+    use galvanic_assert::matchers::collection::*;
+
+    use super::*;
+
+    #[test]
+    fn test_example_1() {
+        let additions_decl = parse_from_record_line("J010812HDT").unwrap();
+        let additions = parse_additions("K12345600090", &additions_decl).unwrap();
+        assert_eq!(additions.len(), 1);
+        assert_that!(&additions, has_entry("HDT".into(), "00090".into()));
+    }
+
+    #[test]
+    fn test_example_2() {
+        let additions_decl = parse_from_record_line("I023638FXA3940SIU").unwrap();
+        let additions = parse_additions("B0818265049456N00610940EA011730132000308", &additions_decl).unwrap();
+        assert_eq!(additions.len(), 2);
+        assert_that!(&additions, has_entry("FXA".into(), "003".into()));
+        assert_that!(&additions, has_entry("SIU".into(), "08".into()));
+    }
+
+    #[test]
+    fn test_errors() {
+        let additions_decl = parse_from_record_line("J010812HDT").unwrap();
+        let result = parse_additions("K1234560009", &additions_decl);
+        assert_eq!(format!("{}", result.unwrap_err()),
+                   "Expected: at least 12 characters; Found: 11 characters");
+    }
 }
