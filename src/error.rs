@@ -57,7 +57,7 @@ impl error::Error for ParseError {
     fn description(&self) -> &str {
         match *self {
             ParseError::IoError(ref err) => err.description(),
-            ParseError::Encoding(ref err) => "Invalid encoding",
+            ParseError::Encoding(..) => "Invalid encoding",
             ParseError::InvalidCharacters(ref err) => err.description(),
             ParseError::InvalidIntNumber(ref err) => err.description(),
             ParseError::LineTooShort => "Line too short",
