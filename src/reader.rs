@@ -8,6 +8,7 @@ use encoding::all::{ASCII, ISO_8859_1, UTF_8};
 
 use error::{Result, ParseError};
 use records::*;
+use ::parsers::additions::AdditionsMap;
 
 pub struct Reader<R> {
     /// The underlying reader.
@@ -16,6 +17,9 @@ pub struct Reader<R> {
     encoding: BufEncoding,
 
     line: usize,
+
+    b_additions: AdditionsMap,
+    k_additions: AdditionsMap,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -38,6 +42,8 @@ impl<R: io::Read> Reader<R> {
             reader: io::BufReader::new(rdr),
             encoding: BufEncoding::Auto,
             line: 0,
+            b_additions: AdditionsMap::new(),
+            k_additions: AdditionsMap::new(),
         }
     }
 
@@ -71,7 +77,19 @@ impl<R: io::Read> Reader<R> {
             };
 
             // 4. parse string
-            return Some(self.parse_line(&line));
+            let record = match self.parse_line(&line) {
+                Err(error) => return Some(Err(error)),
+                Ok(line) => line,
+            };
+
+            // 5. handle record
+            match &record {
+                Record::I(IRecord { additions }) => self.b_additions = additions.clone(),
+                Record::J(JRecord { additions }) => self.k_additions = additions.clone(),
+                _ => {},
+            }
+
+            return Some(Ok(record));
         }
     }
 

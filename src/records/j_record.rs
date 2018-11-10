@@ -8,7 +8,7 @@ use ::parsers::additions::{AdditionsMap, parse_from_record_line};
 
 #[derive(Debug)]
 pub struct JRecord {
-    additions: AdditionsMap,
+    pub additions: AdditionsMap,
 }
 
 impl JRecord {
