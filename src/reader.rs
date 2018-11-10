@@ -130,7 +130,7 @@ impl<R: io::Read> Reader<R> {
             b'G' => Ok(Record::G),
             b'H' => Ok(Record::H),
             b'I' => IRecord::parse(line).map(Record::I),
-            b'J' => Ok(Record::J),
+            b'J' => JRecord::parse(line).map(Record::J),
             b'K' => Ok(Record::K),
             b'L' => Ok(Record::L),
             _ => Err(ParseError::UnknownRecordType(line.chars().next().unwrap())),

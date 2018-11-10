@@ -1,7 +1,4 @@
-use super::{
-    BRecord,
-    IRecord,
-};
+use super::*;
 
 /// IGC file record type representing a single line
 #[derive(Debug)]
@@ -34,7 +31,7 @@ pub enum Record {
     I(IRecord),
 
     /// List of additional data included at end of each K-record
-    J,
+    J(JRecord),
 
     /// Frequent data, additional to the B-record
     K,
