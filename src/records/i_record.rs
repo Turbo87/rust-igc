@@ -1,5 +1,5 @@
 use ::Result;
-use ::parsers::additions::{AdditionsMap, parse_from_record_line};
+use ::parsers::additions::{AdditionsDeclMap, parse_from_record_line};
 
 // Examples:
 //
@@ -8,7 +8,7 @@ use ::parsers::additions::{AdditionsMap, parse_from_record_line};
 
 #[derive(Debug)]
 pub struct IRecord {
-    pub additions: AdditionsMap,
+    pub additions: AdditionsDeclMap,
 }
 
 impl IRecord {

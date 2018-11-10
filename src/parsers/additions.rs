@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 use ::{Result, ParseError};
 
-pub type AdditionsMap = HashMap<String, (u8, u8)>;
+pub type AdditionsDeclMap = HashMap<String, (u8, u8)>;
 
-pub fn parse_from_record_line(input: &str) -> Result<AdditionsMap> {
+pub fn parse_from_record_line(input: &str) -> Result<AdditionsDeclMap> {
     if !input.is_ascii() {
         return Err(ParseError::unexpected("ASCII characters", input));
     }
@@ -25,7 +25,7 @@ pub fn parse_from_record_line(input: &str) -> Result<AdditionsMap> {
         ));
     }
 
-    let mut additions = AdditionsMap::with_capacity(number_of_additions);
+    let mut additions = AdditionsDeclMap::with_capacity(number_of_additions);
 
     for i in 0..number_of_additions {
         let start_byte = &input[(3 + i * 7)..(3 + i * 7 + 2)];

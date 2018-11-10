@@ -8,7 +8,7 @@ use encoding::all::{ASCII, ISO_8859_1, UTF_8};
 
 use error::{Result, ParseError};
 use records::*;
-use ::parsers::additions::AdditionsMap;
+use ::parsers::additions::AdditionsDeclMap;
 
 pub struct Reader<R> {
     /// The underlying reader.
@@ -18,8 +18,8 @@ pub struct Reader<R> {
 
     line: usize,
 
-    b_additions: AdditionsMap,
-    k_additions: AdditionsMap,
+    b_additions: AdditionsDeclMap,
+    k_additions: AdditionsDeclMap,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -42,8 +42,8 @@ impl<R: io::Read> Reader<R> {
             reader: io::BufReader::new(rdr),
             encoding: BufEncoding::Auto,
             line: 0,
-            b_additions: AdditionsMap::new(),
-            k_additions: AdditionsMap::new(),
+            b_additions: AdditionsDeclMap::new(),
+            k_additions: AdditionsDeclMap::new(),
         }
     }
 
