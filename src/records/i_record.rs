@@ -63,6 +63,9 @@ mod tests {
 
         assert_eq!(format!("{}", IRecord::parse("I0100-1ABC").unwrap_err()),
                    "Expected: digits; Found: -1");
+
+        assert_eq!(format!("{}", IRecord::parse("I010100ABC").unwrap_err()),
+                   "Expected: start byte <= end byte; Found: start=1 end=0");
     }
 
     proptest! {
@@ -73,7 +76,13 @@ mod tests {
         }
 
         #[test]
-        fn parses_all_valid_times(additions in "([0-9]{4}[A-Z]{3})+") {
+        fn parses_valid_records_1(additions in "([0-9]{2}99[A-Z]{3})+") {
+            let record = format!("I{:02}{}", additions.len() / 7, additions);
+            prop_assert!(IRecord::parse(&record).is_ok());
+        }
+
+        #[test]
+        fn parses_valid_records_2(additions in "(00[0-9]{2}[A-Z]{3})+") {
             let record = format!("I{:02}{}", additions.len() / 7, additions);
             prop_assert!(IRecord::parse(&record).is_ok());
         }

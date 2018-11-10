@@ -36,6 +36,13 @@ pub fn parse_from_record_line(input: &str) -> Result<AdditionsDeclMap> {
         let end_byte = end_byte.parse()
             .map_err(|_| ParseError::unexpected("digits", end_byte))?;
 
+        if end_byte < start_byte {
+            return Err(ParseError::unexpected(
+                "start byte <= end byte",
+                format!("start={} end={}", start_byte, end_byte),
+            ));
+        }
+
         let code = &input[(3 + i * 7 + 4)..(3 + i * 7 + 7)];
 
         additions.insert(code.into(), (start_byte, end_byte));
