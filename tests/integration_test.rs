@@ -1,7 +1,11 @@
 extern crate igc;
 
 use std::path::Path;
-use igc::{Reader, Record};
+use std::fs::File;
+use std::io::BufReader;
+
+use igc::new_api::Record;
+use igc::utils::lines::ByteLinesExt;
 
 #[test]
 fn it_works() {
@@ -10,7 +14,8 @@ fn it_works() {
         .join("fixtures")
         .join("654g6ng1.igc");
 
-    let mut reader = Reader::from_path(path).unwrap();
+    let file = File::open(path).unwrap();
+    let reader = BufReader::new(file);
 
     let mut result_count = 0;
     let mut error_count = 0;
@@ -27,12 +32,21 @@ fn it_works() {
     let mut j_record_count = 0;
     let mut k_record_count = 0;
     let mut l_record_count = 0;
-    let mut empty_record_count = 0;
 
-    for result in reader.records() {
+    for result in reader.byte_lines() {
         result_count += 1;
 
-        match result {
+        let bytes = match result {
+            Err(_) => {
+                error_count += 1;
+                continue;
+            },
+            Ok(bytes) => bytes,
+        };
+
+        if bytes.is_empty() { continue }
+
+        match Record::parse(&bytes) {
             Err(_) => error_count += 1,
             Ok(record) => {
                 record_count += 1;
@@ -46,11 +60,10 @@ fn it_works() {
                     Record::F => f_record_count += 1,
                     Record::G => g_record_count += 1,
                     Record::H => h_record_count += 1,
-                    Record::I(_) => i_record_count += 1,
-                    Record::J(_) => j_record_count += 1,
+                    Record::I => i_record_count += 1,
+                    Record::J => j_record_count += 1,
                     Record::K => k_record_count += 1,
                     Record::L => l_record_count += 1,
-                    Record::Empty => empty_record_count += 1,
                 }
             },
         }
@@ -73,5 +86,4 @@ fn it_works() {
     assert_eq!(j_record_count, 0);
     assert_eq!(k_record_count, 0);
     assert_eq!(l_record_count, 3616);
-    assert_eq!(empty_record_count, 0);
 }

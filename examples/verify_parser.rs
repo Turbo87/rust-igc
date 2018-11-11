@@ -2,8 +2,11 @@ extern crate igc;
 
 use std::env;
 use std::fs;
+use std::fs::File;
+use std::io::BufReader;
 
-use igc::Reader;
+use igc::new_api::Record;
+use igc::utils::lines::ByteLinesExt;
 
 fn main() {
     // collect command line arguments
@@ -14,19 +17,28 @@ fn main() {
         let path: std::path::PathBuf = entry.unwrap().path();
 
         // open file in buffered reader
-        let mut reader = Reader::from_path(path.clone()).unwrap();
+        let file = File::open(path.clone()).unwrap();
+        let reader = BufReader::new(file);
 
-        // parse file into results vector
-        let results = reader.records().collect::<Vec<_>>();
+        let errors: Vec<_> = reader.byte_lines()
+            .map(Result::unwrap)
+            .enumerate()
+            .filter(|(_, bytes)| !bytes.is_empty())
+            .map(|(line, bytes)| (line, Record::parse(&bytes)))
+            .filter(|(_, res)| res.is_err())
+            .map(|(line, res)| (line, res.unwrap_err()))
+            .collect();
 
-        // check if the results contain errors
-        if !results.iter().all(|result| result.is_ok()) {
+        if !errors.is_empty() {
             // get filename for printing failure message
             let filename = path.file_name().unwrap().to_str().unwrap();
+            println!();
+            println!("{}", filename);
+            println!("--------------------------------");
 
-            // print failure message
-            println!("{}: parsing failed\n{:?}", filename,
-                     results.iter().find(|result| result.is_err()).unwrap());
+            errors.iter().for_each(|(line, error)| {
+                println!("line {}: {}", line + 1, error);
+            });
         };
     }
 }

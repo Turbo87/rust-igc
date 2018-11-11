@@ -1,5 +1,9 @@
 extern crate encoding;
 
+#[macro_use] extern crate failure;
+#[macro_use] extern crate lazy_static;
+extern crate regex;
+
 #[cfg(test)]
 #[macro_use]
 extern crate approx;
@@ -16,7 +20,8 @@ mod records;
 mod parsers;
 mod error;
 mod reader;
-mod utils;
+pub mod new_api;
+pub mod utils;
 
 pub use reader::Reader;
 pub use error::*;
