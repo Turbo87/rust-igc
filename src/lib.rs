@@ -16,6 +16,7 @@ mod records;
 mod parsers;
 mod error;
 mod reader;
+mod utils;
 
 pub use reader::Reader;
 pub use error::*;
