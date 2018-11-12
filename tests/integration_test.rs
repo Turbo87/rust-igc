@@ -60,7 +60,7 @@ fn it_works() {
                     Record::F => f_record_count += 1,
                     Record::G => g_record_count += 1,
                     Record::H => h_record_count += 1,
-                    Record::I => i_record_count += 1,
+                    Record::I(_) => i_record_count += 1,
                     Record::J => j_record_count += 1,
                     Record::K => k_record_count += 1,
                     Record::L => l_record_count += 1,

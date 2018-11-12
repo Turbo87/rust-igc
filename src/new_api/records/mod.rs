@@ -1,7 +1,9 @@
 mod b_record;
+mod i_record;
 
 use ::new_api::{Error, Result};
 use ::new_api::records::b_record::BRecord;
+use ::new_api::records::i_record::IRecord;
 
 /// IGC file record type representing a single line
 #[derive(Debug)]
@@ -31,7 +33,7 @@ pub enum Record {
     H,
 
     /// List of additional data included at end of each B-record
-    I,
+    I(IRecord),
 
     /// List of additional data included at end of each K-record
     J,
@@ -58,7 +60,7 @@ impl Record {
             b'F' => Ok(Record::F),
             b'G' => Ok(Record::G),
             b'H' => Ok(Record::H),
-            b'I' => Ok(Record::I),
+            b'I' => IRecord::parse(bytes).map(Record::I),
             b'J' => Ok(Record::J),
             b'K' => Ok(Record::K),
             b'L' => Ok(Record::L),
