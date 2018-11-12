@@ -79,6 +79,22 @@ impl BRecord {
         Some(buf_to_uint(bytes))
     }
 
+    /// Heading True
+    pub fn heading(&self) -> Option<u16> {
+        let bytes = self.additions.get(&AdditionCode::HDT)?;
+        if bytes.len() != 3 { return None }
+        let value = buf_to_uint(bytes);
+        if value < 360 { Some(value) } else { None }
+    }
+
+    /// Heading Magnetic
+    pub fn heading_magnetic(&self) -> Option<u16> {
+        let bytes = self.additions.get(&AdditionCode::HDM)?;
+        if bytes.len() != 3 { return None }
+        let value = buf_to_uint(bytes);
+        if value < 360 { Some(value) } else { None }
+    }
+
     /// Latitude of the fix using the `latitude` field and the `LAD` addition if
     /// it exists.
     pub fn latitude(&self) -> f64 {
@@ -192,6 +208,22 @@ mod tests {
         let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA02164022874244", &addition_defs).unwrap();
         assert_eq!(record.additions.get(&AdditionCode::ENL).unwrap(), b"4244");
         assert_eq!(record.enl(), None);
+    }
+
+    #[test]
+    fn test_headings() {
+        let addition_defs = vec![
+            AdditionDef::new(AdditionCode::HDT, 36, 38),
+            AdditionDef::new(AdditionCode::HDM, 39, 41),
+        ];
+
+        let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA0216402287091097", &addition_defs).unwrap();
+        assert_eq!(record.heading(), Some(91));
+        assert_eq!(record.heading_magnetic(), Some(97));
+
+        let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA0216402287001360", &addition_defs).unwrap();
+        assert_eq!(record.heading(), Some(1));
+        assert_eq!(record.heading_magnetic(), None);
     }
 
     proptest! {
