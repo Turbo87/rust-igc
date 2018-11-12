@@ -2,6 +2,7 @@ use regex::bytes::Regex;
 
 use ::{Error, Result, Time};
 use ::utils::num::{buf_to_int, buf_to_uint};
+use ::utils::additions::*;
 
 #[derive(Debug)]
 pub struct BRecord {
@@ -11,12 +12,16 @@ pub struct BRecord {
     pub is_valid: bool,
     pub altitude_pressure: i16,
     pub altitude_gps: i16,
-    pub additions: Vec<u8>,
+    pub additions: AdditionsMap,
 }
 
 // B 13 05 10 52 40678 N 007 48278 W A 00779 00769 033011
 impl BRecord {
     pub fn parse(line: &[u8]) -> Result<BRecord> {
+        Self::parse_with_additions(line, vec![])
+    }
+
+    pub fn parse_with_additions(line: &[u8], addition_defs: Vec<AdditionDef>) -> Result<BRecord> {
         lazy_static! {
             static ref RE: Regex = Regex::new(r"(?x-u)
                 ^B                     # record typ
@@ -47,7 +52,7 @@ impl BRecord {
         let altitude_pressure = buf_to_int::<i16>(&cap[11]);
         let altitude_gps = buf_to_int::<i16>(&cap[12]);
 
-        let additions = cap[13].to_vec();
+        let additions = addition_defs.parse(&line)?;
 
         Ok(BRecord {
             time,
@@ -75,7 +80,25 @@ mod tests {
         assert_eq!(record.is_valid, true);
         assert_eq!(record.altitude_pressure, 2164);
         assert_eq!(record.altitude_gps, 2287);
-        assert_eq!(record.additions, b"00309");
+        assert_eq!(record.additions.len(), 0);
+    }
+
+    #[test]
+    fn test_example_1_with_additions() {
+        let addition_defs = vec![
+            AdditionDef::new(AdditionCode::FXA, 36, 38),
+            AdditionDef::new(AdditionCode::SIU, 39, 40),
+        ];
+        let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA021640228700309", addition_defs).unwrap();
+        assert_eq!(record.time, Time::from_hms(14, 14, 06));
+        assert_relative_eq!(record.latitude, 50.28208333333333);
+        assert_relative_eq!(record.longitude, 9.8852);
+        assert_eq!(record.is_valid, true);
+        assert_eq!(record.altitude_pressure, 2164);
+        assert_eq!(record.altitude_gps, 2287);
+        assert_eq!(record.additions.len(), 2);
+        assert_eq!(record.additions.get(&AdditionCode::FXA).unwrap(), b"003");
+        assert_eq!(record.additions.get(&AdditionCode::SIU).unwrap(), b"09");
     }
 
     proptest! {
