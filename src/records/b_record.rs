@@ -104,6 +104,7 @@ impl BRecord {
 
     fn latitude_addition(&self) -> Option<f64> {
         let bytes = self.additions.get(&AdditionCode::LAD)?;
+        if !bytes.iter().all(u8::is_ascii_digit) { return None }
         let value: f64 = buf_to_uint(bytes);
         Some(value / f64::from(10).powi(bytes.len() as i32))
     }
@@ -125,13 +126,14 @@ impl BRecord {
 
     fn longitude_addition(&self) -> Option<f64> {
         let bytes = self.additions.get(&AdditionCode::LOD)?;
+        if !bytes.iter().all(u8::is_ascii_digit) { return None }
         let value: f64 = buf_to_uint(bytes);
         Some(value / f64::from(10).powi(bytes.len() as i32))
     }
 
     fn get_three_digit_addition(&self, code: &AdditionCode) -> Option<u16> {
         let bytes = self.additions.get(code)?;
-        if bytes.len() != 3 { return None }
+        if bytes.len() != 3 || !bytes.iter().all(u8::is_ascii_digit) { return None }
         Some(buf_to_uint(bytes))
     }
 }
@@ -205,6 +207,15 @@ mod tests {
         ];
         let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA02164022874244", &addition_defs).unwrap();
         assert_eq!(record.additions.get(&AdditionCode::ENL).unwrap(), b"4244");
+        assert_eq!(record.enl(), None);
+    }
+
+    #[test]
+    fn test_non_numeric_enl() {
+        let addition_defs = vec![
+            AdditionDef::new(AdditionCode::ENL, 36, 38),
+        ];
+        let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA02164022874a4", &addition_defs).unwrap();
         assert_eq!(record.enl(), None);
     }
 
