@@ -13,5 +13,4 @@ strum_macros = "0.11.0"
 
 [dev-dependencies]
 approx = "^0.3.0"
-galvanic-assert = "0.8.7"
 proptest = "0.8.7"

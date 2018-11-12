@@ -1,91 +1,88 @@
-use super::super::parsers::coordinate::{parse_latitude, parse_longitude};
-use super::super::parsers::time::{parse_time, Time};
-use super::super::{Result, ParseError};
+use regex::bytes::Regex;
+
+use ::{Error, Result, Time};
+use ::utils::num::{buf_to_int, buf_to_uint};
 
 #[derive(Debug)]
 pub struct BRecord {
     pub time: Time,
-    pub longitude: f64,
     pub latitude: f64,
-    pub valid: bool,
-    pub pressure_altitude: Option<i32>,
-    pub gnss_altitude: Option<i32>,
-    pub extra: Vec<u8>,
+    pub longitude: f64,
+    pub is_valid: bool,
+    pub altitude_pressure: i16,
+    pub altitude_gps: i16,
+    pub additions: Vec<u8>,
 }
 
+// B 13 05 10 52 40678 N 007 48278 W A 00779 00769 033011
 impl BRecord {
-    pub(crate) fn parse(input: &str) -> Result<Self> {
-        debug_assert_eq!(&input[0..1], "B");
-
-        let len = input.len();
-        if len < 35 {
-            return Err(ParseError::LineTooShort);
+    pub fn parse(line: &[u8]) -> Result<BRecord> {
+        lazy_static! {
+            static ref RE: Regex = Regex::new(r"(?x-u)
+                ^B                     # record typ
+                (\d{2})(\d{2})(\d{2})  # UTC time
+                (\d{2})(\d{5})([NS])   # latitude
+                (\d{3})(\d{5})([EW])   # longitude
+                ([AV])                 # validity
+                (\d{5}|-\d{4})         # gps altitude
+                (\d{5}|-\d{4})         # pressure altitude
+                (.*)                   # additions
+            ").unwrap();
         }
 
-        let _time = parse_time(&input[1..7])?;
-        let latitude = parse_latitude(&input[7..15])?;
-        let longitude = parse_longitude(&input[15..24])?;
-        let _valid = parse_validity(input[24..25].as_bytes()[0])?;
-        let _pressure_altitude = parse_altitude(&input[25..30].as_bytes())?;
-        let _gnss_altitude = parse_altitude(&input[30..35].as_bytes())?;
-        let _extra = input[35..].as_bytes().to_vec();
+        let cap = RE.captures(line).ok_or_else(|| Error::invalid_record(line))?;
+
+        let hour = buf_to_uint(&cap[1]);
+        let minute = buf_to_uint(&cap[2]);
+        let second = buf_to_uint(&cap[3]);
+        let time = Time::from_hms(hour, minute, second);
+
+        let abs_latitude = buf_to_uint::<f64>(&cap[4]) + buf_to_uint::<f64>(&cap[5]) / 60000.;
+        let latitude = if &cap[6] == b"S" { -abs_latitude } else { abs_latitude };
+
+        let abs_longitude = buf_to_uint::<f64>(&cap[7]) + buf_to_uint::<f64>(&cap[8]) / 60000.;
+        let longitude = if &cap[9] == b"W" { -abs_longitude } else { abs_longitude };
+
+        let is_valid = &cap[10] == b"A";
+        let altitude_pressure = buf_to_int::<i16>(&cap[11]);
+        let altitude_gps = buf_to_int::<i16>(&cap[12]);
+
+        let additions = cap[13].to_vec();
 
         Ok(BRecord {
-            time: _time,
+            time,
             latitude,
             longitude,
-            valid: _valid,
-            pressure_altitude: _pressure_altitude,
-            gnss_altitude: _gnss_altitude,
-            extra: _extra,
+            is_valid,
+            altitude_gps,
+            altitude_pressure,
+            additions,
         })
     }
 }
 
-fn parse_validity(input: u8) -> Result<bool> {
-    match input {
-        b'A' => Ok(true),
-        b'V' => Ok(false),
-        _ => Err(ParseError::InvalidValidity(input))
-    }
-}
-
-fn parse_altitude(input: &[u8]) -> Result<Option<i32>> {
-    debug_assert_eq!(input.len(), 5);
-
-    Ok(if input == b"00000" {
-        None
-    } else {
-        Some(String::from_utf8(input.to_vec())?.parse::<i32>()?)
-    })
-}
 
 #[cfg(test)]
 mod tests {
-    use super::{BRecord, parse_altitude, Time};
+    use super::*;
 
     #[test]
-    fn test_b_record() {
-        let record = BRecord::parse("B1414065016925N00953112EA021640228700309").unwrap();
+    fn test_example_1() {
+        let record = BRecord::parse(b"B1414065016925N00953112EA021640228700309").unwrap();
         assert_eq!(record.time, Time::from_hms(14, 14, 06));
-        assert_relative_eq!(record.longitude, 9.8852);
         assert_relative_eq!(record.latitude, 50.28208333333333);
-        assert_eq!(record.valid, true);
-        assert_eq!(record.pressure_altitude, Some(2164));
-        assert_eq!(record.gnss_altitude, Some(2287));
-        assert_eq!(String::from_utf8(record.extra).unwrap(), "00309");
+        assert_relative_eq!(record.longitude, 9.8852);
+        assert_eq!(record.is_valid, true);
+        assert_eq!(record.altitude_pressure, 2164);
+        assert_eq!(record.altitude_gps, 2287);
+        assert_eq!(record.additions, b"00309");
     }
 
-    #[test]
-    fn test_altitude() {
-        assert!(parse_altitude(b"abcde").is_err());
-        assert!(parse_altitude(b"--000").is_err());
-        assert_eq!(parse_altitude(b"00000").unwrap(), None);
-        assert_eq!(parse_altitude(b"00001").unwrap(), Some(1));
-        assert_eq!(parse_altitude(b"-0001").unwrap(), Some(-1));
-        assert_eq!(parse_altitude(b"-0000").unwrap(), Some(0));
-        assert_eq!(parse_altitude(b"01234").unwrap(), Some(1234));
-        assert_eq!(parse_altitude(b"99999").unwrap(), Some(99999));
-        assert_eq!(parse_altitude(b"-9999").unwrap(), Some(-9999));
+    proptest! {
+        #[test]
+        #[allow(unused_must_use)]
+        fn parse_doesnt_crash(s in r"\PC*") {
+            BRecord::parse(s.as_bytes());
+        }
     }
 }

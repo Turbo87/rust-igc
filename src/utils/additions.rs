@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
+use ::{Error, Result};
 use ::utils::num::buf_to_uint;
 use ::utils::addition_code::AdditionCode;
-use ::new_api::{Error, Result};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct AdditionDef {

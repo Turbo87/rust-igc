@@ -1,90 +1,79 @@
-use ::Result;
-use ::parsers::additions::{AdditionsDeclMap, parse_from_record_line};
+use regex::bytes::Regex;
+
+use ::{Error, Result};
+use ::utils::num::buf_to_uint;
+use ::utils::additions::AdditionDef;
+
 
 // Examples:
 //
 // I023638FXA3941ENL
 // I013638ENL
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct IRecord {
-    pub additions: AdditionsDeclMap,
+    /// Number of additions contained in `additions_def`.
+    ///
+    /// Note that this is what the original record claimed,
+    /// not necessarily what is actually available.
+    pub num_additions: u8,
+
+    /// B-Record addition definitions
+    pub addition_defs: Vec<AdditionDef>,
 }
 
 impl IRecord {
-    pub(crate) fn parse(input: &str) -> Result<Self> {
-        debug_assert_eq!(&input[0..1], "I");
+    pub fn parse(line: &[u8]) -> Result<IRecord> {
+        lazy_static! {
+            static ref RE: Regex = Regex::new(r"(?x-u)
+                ^I                          # record typ
+                (\d{2})                     # number of additions
+                ((?:\d{4}[[:alnum:]]{3})+)  # additions
+            ").unwrap();
+        }
 
-        parse_from_record_line(input)
-            .map(|additions| IRecord { additions })
+        let cap = RE.captures(line).ok_or_else(|| Error::invalid_record(line))?;
+
+        let num_additions: u8 = buf_to_uint(&cap[1]);
+
+        let addition_defs: Vec<_> = cap[2].chunks(7)
+            .map(|bytes| unsafe { AdditionDef::parse_unchecked(bytes) })
+            .collect();
+
+        Ok(IRecord { num_additions, addition_defs })
     }
 }
 
+
 #[cfg(test)]
 mod tests {
-    use galvanic_assert::matchers::collection::*;
-
-    use super::IRecord;
+    use super::*;
+    use ::utils::addition_code::AdditionCode;
 
     #[test]
     fn test_example_1() {
-        let record = IRecord::parse("I023638FXA3941ENL").unwrap();
-        assert_eq!(record.additions.len(), 2);
-        assert_that!(&record.additions, has_entry("ENL".into(), (39, 41)));
-        assert_that!(&record.additions, has_entry("FXA".into(), (36, 38)));
+        let record = IRecord::parse(b"I023638FXA3941ENL").unwrap();
+        assert_eq!(record.num_additions, 2);
+        assert_eq!(record.addition_defs, vec![
+            AdditionDef::new(AdditionCode::FXA, 36, 38),
+            AdditionDef::new(AdditionCode::ENL, 39, 41),
+        ]);
     }
 
     #[test]
     fn test_example_2() {
-        let record = IRecord::parse("I013638ENL").unwrap();
-        assert_eq!(record.additions.len(), 1);
-        assert_that!(&record.additions, has_entry("ENL".into(), (36, 38)));
-    }
-
-    #[test]
-    fn test_errors() {
-        assert_eq!(format!("{}", IRecord::parse("I010000ÄÖÜ").unwrap_err()),
-                   "Expected: ASCII characters; Found: I010000ÄÖÜ");
-
-        assert_eq!(format!("{}", IRecord::parse("I").unwrap_err()),
-                   "Expected: at least 3 characters; Found: I");
-
-        assert_eq!(format!("{}", IRecord::parse("IAB").unwrap_err()),
-                   "Expected: digits; Found: AB");
-
-        assert_eq!(format!("{}", IRecord::parse("I01000").unwrap_err()),
-                   "Expected: 1 additions (= 7 characters); Found: 3 characters");
-
-        assert_eq!(format!("{}", IRecord::parse("I-1").unwrap_err()),
-                   "Expected: digits; Found: -1");
-
-        assert_eq!(format!("{}", IRecord::parse("I010a02ABC").unwrap_err()),
-                   "Expected: digits; Found: 0a");
-
-        assert_eq!(format!("{}", IRecord::parse("I0100-1ABC").unwrap_err()),
-                   "Expected: digits; Found: -1");
-
-        assert_eq!(format!("{}", IRecord::parse("I010100ABC").unwrap_err()),
-                   "Expected: start byte <= end byte; Found: start=1 end=0");
+        let record = IRecord::parse(b"I013638ENL").unwrap();
+        assert_eq!(record.num_additions, 1);
+        assert_eq!(record.addition_defs, vec![
+            AdditionDef::new(AdditionCode::ENL, 36, 38),
+        ]);
     }
 
     proptest! {
         #[test]
         #[allow(unused_must_use)]
-        fn doesnt_crash(s in r"I\PC*") {
-            IRecord::parse(&s);
-        }
-
-        #[test]
-        fn parses_valid_records_1(additions in "([0-9]{2}99[A-Z]{3})+") {
-            let record = format!("I{:02}{}", additions.len() / 7, additions);
-            prop_assert!(IRecord::parse(&record).is_ok());
-        }
-
-        #[test]
-        fn parses_valid_records_2(additions in "(00[0-9]{2}[A-Z]{3})+") {
-            let record = format!("I{:02}{}", additions.len() / 7, additions);
-            prop_assert!(IRecord::parse(&record).is_ok());
+        fn parse_doesnt_crash(s in r"\PC*") {
+            IRecord::parse(s.as_bytes());
         }
     }
 }

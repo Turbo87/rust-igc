@@ -4,7 +4,7 @@ use std::path::Path;
 use std::fs::File;
 use std::io::BufReader;
 
-use igc::new_api::Record;
+use igc::Record;
 use igc::utils::lines::ByteLinesExt;
 
 #[test]

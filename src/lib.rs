@@ -12,20 +12,12 @@ extern crate approx;
 
 #[cfg(test)]
 #[macro_use]
-extern crate galvanic_assert;
-
-#[cfg(test)]
-#[macro_use]
 extern crate proptest;
 
 mod records;
-mod parsers;
 mod error;
-mod reader;
-pub mod new_api;
 pub mod utils;
 
-pub use reader::Reader;
-pub use error::*;
-pub use records::*;
-pub use parsers::time::Time;
+pub use self::records::*;
+pub use self::error::{Error, Result};
+pub use self::utils::time::Time;
