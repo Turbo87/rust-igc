@@ -65,6 +65,13 @@ impl BRecord {
         })
     }
 
+    /// Environmental Noise Level
+    pub fn enl(&self) -> Option<u16> {
+        let bytes = self.additions.get(&AdditionCode::ENL)?;
+        if bytes.len() != 3 { return None }
+        Some(buf_to_uint(bytes))
+    }
+
     /// Latitude of the fix using the `latitude` field and the `LAD` addition if
     /// it exists.
     pub fn latitude(&self) -> f64 {
@@ -158,6 +165,25 @@ mod tests {
         assert_relative_eq!(record.latitude(), 50. + 16.925_12 / 60.);
         assert_relative_eq!(record.longitude_addition().unwrap(), 0.345);
         assert_relative_eq!(record.longitude(), 9. + 53.112_345 / 60.);
+    }
+
+    #[test]
+    fn test_enl() {
+        let addition_defs = vec![
+            AdditionDef::new(AdditionCode::ENL, 36, 38),
+        ];
+        let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA0216402287424", addition_defs).unwrap();
+        assert_eq!(record.enl(), Some(424));
+    }
+
+    #[test]
+    fn test_non_standard_enl() {
+        let addition_defs = vec![
+            AdditionDef::new(AdditionCode::ENL, 36, 39),
+        ];
+        let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA02164022874244", addition_defs).unwrap();
+        assert_eq!(record.additions.get(&AdditionCode::ENL).unwrap(), b"4244");
+        assert_eq!(record.enl(), None);
     }
 
     proptest! {
