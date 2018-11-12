@@ -3,6 +3,8 @@ extern crate encoding;
 #[macro_use] extern crate failure;
 #[macro_use] extern crate lazy_static;
 extern crate regex;
+extern crate strum;
+#[macro_use] extern crate strum_macros;
 
 #[cfg(test)]
 #[macro_use]

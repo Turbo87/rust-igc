@@ -48,14 +48,15 @@ impl IRecord {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ::utils::addition_code::AdditionCode;
 
     #[test]
     fn test_example_1() {
         let record = IRecord::parse(b"I023638FXA3941ENL").unwrap();
         assert_eq!(record.num_additions, 2);
         assert_eq!(record.addition_defs, vec![
-            AdditionDef::new("FXA", 36, 38),
-            AdditionDef::new("ENL", 39, 41),
+            AdditionDef::new(AdditionCode::FXA, 36, 38),
+            AdditionDef::new(AdditionCode::ENL, 39, 41),
         ]);
     }
 
@@ -64,7 +65,7 @@ mod tests {
         let record = IRecord::parse(b"I013638ENL").unwrap();
         assert_eq!(record.num_additions, 1);
         assert_eq!(record.addition_defs, vec![
-            AdditionDef::new("ENL", 36, 38),
+            AdditionDef::new(AdditionCode::ENL, 36, 38),
         ]);
     }
 
