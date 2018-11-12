@@ -65,6 +65,13 @@ impl BRecord {
         })
     }
 
+    /// Fix accuracy in metres
+    pub fn fix_accuracy(&self) -> Option<u16> {
+        let bytes = self.additions.get(&AdditionCode::FXA)?;
+        if bytes.len() != 3 { return None }
+        Some(buf_to_uint(bytes))
+    }
+
     /// Environmental Noise Level
     pub fn enl(&self) -> Option<u16> {
         let bytes = self.additions.get(&AdditionCode::ENL)?;
@@ -152,6 +159,7 @@ mod tests {
         assert_eq!(record.additions.len(), 2);
         assert_eq!(record.additions.get(&AdditionCode::FXA).unwrap(), b"003");
         assert_eq!(record.additions.get(&AdditionCode::SIU).unwrap(), b"09");
+        assert_eq!(record.fix_accuracy(), Some(3));
     }
 
     #[test]
