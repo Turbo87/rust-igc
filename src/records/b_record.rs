@@ -64,6 +64,48 @@ impl BRecord {
             additions,
         })
     }
+
+    /// Latitude of the fix using the `latitude` field and the `LAD` addition if
+    /// it exists.
+    pub fn latitude(&self) -> f64 {
+        let addition = match self.latitude_addition() {
+            None => return self.latitude,
+            Some(addition) => addition,
+        };
+
+        if self.latitude.is_sign_negative() {
+            self.latitude - addition / 60000.
+        } else {
+            self.latitude + addition / 60000.
+        }
+    }
+
+    fn latitude_addition(&self) -> Option<f64> {
+        let bytes = self.additions.get(&AdditionCode::LAD)?;
+        let value: f64 = buf_to_uint(bytes);
+        Some(value / f64::from(10).powi(bytes.len() as i32))
+    }
+
+    /// Latitude of the fix using the `longitude` field and the `LOD` addition if
+    /// it exists.
+    pub fn longitude(&self) -> f64 {
+        let addition = match self.longitude_addition() {
+            None => return self.longitude,
+            Some(addition) => addition,
+        };
+
+        if self.longitude.is_sign_negative() {
+            self.longitude - addition / 60000.
+        } else {
+            self.longitude + addition / 60000.
+        }
+    }
+
+    fn longitude_addition(&self) -> Option<f64> {
+        let bytes = self.additions.get(&AdditionCode::LOD)?;
+        let value: f64 = buf_to_uint(bytes);
+        Some(value / f64::from(10).powi(bytes.len() as i32))
+    }
 }
 
 
@@ -92,13 +134,30 @@ mod tests {
         let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA021640228700309", addition_defs).unwrap();
         assert_eq!(record.time, Time::from_hms(14, 14, 06));
         assert_relative_eq!(record.latitude, 50.28208333333333);
+        assert_relative_eq!(record.latitude(), 50.28208333333333);
+        assert_eq!(record.latitude_addition(), None);
         assert_relative_eq!(record.longitude, 9.8852);
+        assert_relative_eq!(record.longitude(), 9.8852);
+        assert_eq!(record.longitude_addition(), None);
         assert_eq!(record.is_valid, true);
         assert_eq!(record.altitude_pressure, 2164);
         assert_eq!(record.altitude_gps, 2287);
         assert_eq!(record.additions.len(), 2);
         assert_eq!(record.additions.get(&AdditionCode::FXA).unwrap(), b"003");
         assert_eq!(record.additions.get(&AdditionCode::SIU).unwrap(), b"09");
+    }
+
+    #[test]
+    fn test_lat_lon_precision() {
+        let addition_defs = vec![
+            AdditionDef::new(AdditionCode::LAD, 36, 37),
+            AdditionDef::new(AdditionCode::LOD, 38, 40),
+        ];
+        let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA021640228712345", addition_defs).unwrap();
+        assert_relative_eq!(record.latitude_addition().unwrap(), 0.12);
+        assert_relative_eq!(record.latitude(), 50. + 16.925_12 / 60.);
+        assert_relative_eq!(record.longitude_addition().unwrap(), 0.345);
+        assert_relative_eq!(record.longitude(), 9. + 53.112_345 / 60.);
     }
 
     proptest! {
