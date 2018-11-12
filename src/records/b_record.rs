@@ -18,10 +18,10 @@ pub struct BRecord {
 // B 13 05 10 52 40678 N 007 48278 W A 00779 00769 033011
 impl BRecord {
     pub fn parse(line: &[u8]) -> Result<BRecord> {
-        Self::parse_with_additions(line, vec![])
+        Self::parse_with_additions(line, &vec![])
     }
 
-    pub fn parse_with_additions(line: &[u8], addition_defs: Vec<AdditionDef>) -> Result<BRecord> {
+    pub fn parse_with_additions(line: &[u8], addition_defs: &Vec<AdditionDef>) -> Result<BRecord> {
         lazy_static! {
             static ref RE: Regex = Regex::new(r"(?x-u)
                 ^B                     # record typ
@@ -145,7 +145,7 @@ mod tests {
             AdditionDef::new(AdditionCode::FXA, 36, 38),
             AdditionDef::new(AdditionCode::SIU, 39, 40),
         ];
-        let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA021640228700309", addition_defs).unwrap();
+        let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA021640228700309", &addition_defs).unwrap();
         assert_eq!(record.time, Time::from_hms(14, 14, 06));
         assert_relative_eq!(record.latitude, 50.28208333333333);
         assert_relative_eq!(record.latitude(), 50.28208333333333);
@@ -168,7 +168,7 @@ mod tests {
             AdditionDef::new(AdditionCode::LAD, 36, 37),
             AdditionDef::new(AdditionCode::LOD, 38, 40),
         ];
-        let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA021640228712345", addition_defs).unwrap();
+        let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA021640228712345", &addition_defs).unwrap();
         assert_relative_eq!(record.latitude_addition().unwrap(), 0.12);
         assert_relative_eq!(record.latitude(), 50. + 16.925_12 / 60.);
         assert_relative_eq!(record.longitude_addition().unwrap(), 0.345);
@@ -180,7 +180,7 @@ mod tests {
         let addition_defs = vec![
             AdditionDef::new(AdditionCode::ENL, 36, 38),
         ];
-        let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA0216402287424", addition_defs).unwrap();
+        let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA0216402287424", &addition_defs).unwrap();
         assert_eq!(record.enl(), Some(424));
     }
 
@@ -189,7 +189,7 @@ mod tests {
         let addition_defs = vec![
             AdditionDef::new(AdditionCode::ENL, 36, 39),
         ];
-        let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA02164022874244", addition_defs).unwrap();
+        let record = BRecord::parse_with_additions(b"B1414065016925N00953112EA02164022874244", &addition_defs).unwrap();
         assert_eq!(record.additions.get(&AdditionCode::ENL).unwrap(), b"4244");
         assert_eq!(record.enl(), None);
     }
