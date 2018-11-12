@@ -67,31 +67,23 @@ impl BRecord {
 
     /// Fix accuracy in metres
     pub fn fix_accuracy(&self) -> Option<u16> {
-        let bytes = self.additions.get(&AdditionCode::FXA)?;
-        if bytes.len() != 3 { return None }
-        Some(buf_to_uint(bytes))
+        self.get_three_digit_addition(&AdditionCode::FXA)
     }
 
     /// Environmental Noise Level
     pub fn enl(&self) -> Option<u16> {
-        let bytes = self.additions.get(&AdditionCode::ENL)?;
-        if bytes.len() != 3 { return None }
-        Some(buf_to_uint(bytes))
+        self.get_three_digit_addition(&AdditionCode::ENL)
     }
 
     /// Heading True
     pub fn heading(&self) -> Option<u16> {
-        let bytes = self.additions.get(&AdditionCode::HDT)?;
-        if bytes.len() != 3 { return None }
-        let value = buf_to_uint(bytes);
+        let value = self.get_three_digit_addition(&AdditionCode::HDT)?;
         if value < 360 { Some(value) } else { None }
     }
 
     /// Heading Magnetic
     pub fn heading_magnetic(&self) -> Option<u16> {
-        let bytes = self.additions.get(&AdditionCode::HDM)?;
-        if bytes.len() != 3 { return None }
-        let value = buf_to_uint(bytes);
+        let value = self.get_three_digit_addition(&AdditionCode::HDM)?;
         if value < 360 { Some(value) } else { None }
     }
 
@@ -135,6 +127,12 @@ impl BRecord {
         let bytes = self.additions.get(&AdditionCode::LOD)?;
         let value: f64 = buf_to_uint(bytes);
         Some(value / f64::from(10).powi(bytes.len() as i32))
+    }
+
+    fn get_three_digit_addition(&self, code: &AdditionCode) -> Option<u16> {
+        let bytes = self.additions.get(code)?;
+        if bytes.len() != 3 { return None }
+        Some(buf_to_uint(bytes))
     }
 }
 
