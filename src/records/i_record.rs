@@ -48,7 +48,7 @@ impl IRecord {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ::utils::addition_code::AdditionCode;
+    use ::utils::additions::AdditionCode;
 
     #[test]
     fn test_example_1() {
