@@ -25,7 +25,7 @@ impl BRecord {
         lazy_static! {
             static ref RE: Regex = Regex::new(r"(?x-u)
                 ^B                     # record typ
-                (\d{2})(\d{2})(\d{2})  # UTC time
+                (\d{6})                # UTC time
                 (\d{2})(\d{5})([NS])   # latitude
                 (\d{3})(\d{5})([EW])   # longitude
                 ([AV])                 # validity
@@ -37,22 +37,19 @@ impl BRecord {
 
         let cap = RE.captures(line).ok_or_else(|| Error::invalid_record(line))?;
 
-        let hour = parse_int(&cap[1]).unwrap();
-        let minute = parse_int(&cap[2]).unwrap();
-        let second = parse_int(&cap[3]).unwrap();
-        let time = Time::from_hms(hour, minute, second);
+        let time = Time::parse_unchecked(&cap[1]);
 
-        let abs_latitude: f64 = parse_int::<u32>(&cap[4]).unwrap() as f64
-            + parse_int::<u32>(&cap[5]).unwrap() as f64 / 60000.;
-        let latitude = if &cap[6] == b"S" { -abs_latitude } else { abs_latitude };
+        let abs_latitude: f64 = parse_int::<u32>(&cap[2]).unwrap() as f64
+            + parse_int::<u32>(&cap[3]).unwrap() as f64 / 60000.;
+        let latitude = if &cap[4] == b"S" { -abs_latitude } else { abs_latitude };
 
-        let abs_longitude: f64 = parse_int::<u32>(&cap[7]).unwrap() as f64
-            + parse_int::<u32>(&cap[8]).unwrap() as f64 / 60000.;
-        let longitude = if &cap[9] == b"W" { -abs_longitude } else { abs_longitude };
+        let abs_longitude: f64 = parse_int::<u32>(&cap[5]).unwrap() as f64
+            + parse_int::<u32>(&cap[6]).unwrap() as f64 / 60000.;
+        let longitude = if &cap[7] == b"W" { -abs_longitude } else { abs_longitude };
 
-        let is_valid = &cap[10] == b"A";
-        let altitude_pressure = parse_int(&cap[11]).unwrap();
-        let altitude_gps = parse_int(&cap[12]).unwrap();
+        let is_valid = &cap[8] == b"A";
+        let altitude_pressure = parse_int(&cap[9]).unwrap();
+        let altitude_gps = parse_int(&cap[10]).unwrap();
 
         let additions = addition_defs.parse(&line)?;
 
