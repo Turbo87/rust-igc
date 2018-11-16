@@ -20,4 +20,4 @@ pub mod utils;
 
 pub use self::records::*;
 pub use self::error::{Error, Result};
-pub use self::utils::time::{Time, Date};
+pub use self::utils::datetime::{Time, Date};
