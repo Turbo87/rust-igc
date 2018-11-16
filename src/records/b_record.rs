@@ -1,6 +1,7 @@
 use regex::bytes::Regex;
 
 use ::{Error, Result, Time};
+use ::utils::coordinates::{parse_latitude_unchecked, parse_longitude_unchecked};
 use ::utils::num::parse_int;
 use ::utils::additions::*;
 
@@ -26,8 +27,8 @@ impl BRecord {
             static ref RE: Regex = Regex::new(r"(?x-u)
                 ^B                     # record typ
                 (\d{6})                # UTC time
-                (\d{2})(\d{5})([NS])   # latitude
-                (\d{3})(\d{5})([EW])   # longitude
+                (\d{7}[NS])            # latitude
+                (\d{8}[EW])            # longitude
                 ([AV])                 # validity
                 (\d{5}|-\d{4})         # gps altitude
                 (\d{5}|-\d{4})         # pressure altitude
@@ -38,18 +39,11 @@ impl BRecord {
         let cap = RE.captures(line).ok_or_else(|| Error::invalid_record(line))?;
 
         let time = Time::parse_unchecked(&cap[1]);
-
-        let abs_latitude: f64 = parse_int::<u32>(&cap[2]).unwrap() as f64
-            + parse_int::<u32>(&cap[3]).unwrap() as f64 / 60000.;
-        let latitude = if &cap[4] == b"S" { -abs_latitude } else { abs_latitude };
-
-        let abs_longitude: f64 = parse_int::<u32>(&cap[5]).unwrap() as f64
-            + parse_int::<u32>(&cap[6]).unwrap() as f64 / 60000.;
-        let longitude = if &cap[7] == b"W" { -abs_longitude } else { abs_longitude };
-
-        let is_valid = &cap[8] == b"A";
-        let altitude_pressure = parse_int(&cap[9]).unwrap();
-        let altitude_gps = parse_int(&cap[10]).unwrap();
+        let latitude = parse_latitude_unchecked(&cap[2]);
+        let longitude = parse_longitude_unchecked(&cap[3]);
+        let is_valid = &cap[4] == b"A";
+        let altitude_pressure = parse_int(&cap[5]).unwrap();
+        let altitude_gps = parse_int(&cap[6]).unwrap();
 
         let additions = addition_defs.parse(&line)?;
 
