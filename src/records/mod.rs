@@ -2,12 +2,14 @@ mod b_record;
 mod c_record;
 mod h_record;
 mod i_record;
+mod j_record;
 
 use ::{Error, Result};
 pub use self::b_record::BRecord;
 pub use self::c_record::{CRecordDeclaration, CRecordTurnpoint};
 pub use self::h_record::HRecord;
 pub use self::i_record::IRecord;
+pub use self::j_record::JRecord;
 
 /// IGC file record type representing a single line
 #[derive(Debug)]
