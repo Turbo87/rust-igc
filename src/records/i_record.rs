@@ -1,7 +1,7 @@
 use regex::bytes::Regex;
 
 use ::{Error, Result};
-use ::utils::num::buf_to_uint;
+use ::utils::num::parse_int;
 use ::utils::additions::AdditionDef;
 
 
@@ -34,7 +34,7 @@ impl IRecord {
 
         let cap = RE.captures(line).ok_or_else(|| Error::invalid_record(line))?;
 
-        let num_additions: u8 = buf_to_uint(&cap[1]);
+        let num_additions = parse_int(&cap[1]).unwrap();
 
         let addition_defs: Vec<_> = cap[2].chunks(7)
             .map(|bytes| unsafe { AdditionDef::parse_unchecked(bytes) })

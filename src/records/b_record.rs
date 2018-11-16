@@ -1,7 +1,7 @@
 use regex::bytes::Regex;
 
 use ::{Error, Result, Time};
-use ::utils::num::{buf_to_int, buf_to_uint};
+use ::utils::num::parse_int;
 use ::utils::additions::*;
 
 #[derive(Debug)]
@@ -37,20 +37,22 @@ impl BRecord {
 
         let cap = RE.captures(line).ok_or_else(|| Error::invalid_record(line))?;
 
-        let hour = buf_to_uint(&cap[1]);
-        let minute = buf_to_uint(&cap[2]);
-        let second = buf_to_uint(&cap[3]);
+        let hour = parse_int(&cap[1]).unwrap();
+        let minute = parse_int(&cap[2]).unwrap();
+        let second = parse_int(&cap[3]).unwrap();
         let time = Time::from_hms(hour, minute, second);
 
-        let abs_latitude = buf_to_uint::<f64>(&cap[4]) + buf_to_uint::<f64>(&cap[5]) / 60000.;
+        let abs_latitude: f64 = parse_int::<u32>(&cap[4]).unwrap() as f64
+            + parse_int::<u32>(&cap[5]).unwrap() as f64 / 60000.;
         let latitude = if &cap[6] == b"S" { -abs_latitude } else { abs_latitude };
 
-        let abs_longitude = buf_to_uint::<f64>(&cap[7]) + buf_to_uint::<f64>(&cap[8]) / 60000.;
+        let abs_longitude: f64 = parse_int::<u32>(&cap[7]).unwrap() as f64
+            + parse_int::<u32>(&cap[8]).unwrap() as f64 / 60000.;
         let longitude = if &cap[9] == b"W" { -abs_longitude } else { abs_longitude };
 
         let is_valid = &cap[10] == b"A";
-        let altitude_pressure = buf_to_int::<i16>(&cap[11]);
-        let altitude_gps = buf_to_int::<i16>(&cap[12]);
+        let altitude_pressure = parse_int(&cap[11]).unwrap();
+        let altitude_gps = parse_int(&cap[12]).unwrap();
 
         let additions = addition_defs.parse(&line)?;
 
@@ -104,8 +106,7 @@ impl BRecord {
 
     fn latitude_addition(&self) -> Option<f64> {
         let bytes = self.additions.get(&AdditionCode::LAD)?;
-        if !bytes.iter().all(u8::is_ascii_digit) { return None }
-        let value: f64 = buf_to_uint(bytes);
+        let value = parse_int::<u32>(bytes)? as f64;
         Some(value / f64::from(10).powi(bytes.len() as i32))
     }
 
@@ -126,15 +127,14 @@ impl BRecord {
 
     fn longitude_addition(&self) -> Option<f64> {
         let bytes = self.additions.get(&AdditionCode::LOD)?;
-        if !bytes.iter().all(u8::is_ascii_digit) { return None }
-        let value: f64 = buf_to_uint(bytes);
+        let value = parse_int::<u32>(bytes)? as f64;
         Some(value / f64::from(10).powi(bytes.len() as i32))
     }
 
     fn get_three_digit_addition(&self, code: &AdditionCode) -> Option<u16> {
         let bytes = self.additions.get(code)?;
-        if bytes.len() != 3 || !bytes.iter().all(u8::is_ascii_digit) { return None }
-        Some(buf_to_uint(bytes))
+        if bytes.len() != 3 { return None }
+        parse_int::<u16>(bytes)
     }
 }
 
