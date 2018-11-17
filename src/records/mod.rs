@@ -1,6 +1,7 @@
 mod b_record;
 mod c_record;
 mod d_record;
+mod f_record;
 mod h_record;
 mod i_record;
 mod j_record;
@@ -11,6 +12,7 @@ use ::{Error, Result};
 pub use self::b_record::BRecord;
 pub use self::c_record::{CRecordDeclaration, CRecordTurnpoint};
 pub use self::d_record::DRecord;
+pub use self::f_record::FRecord;
 pub use self::h_record::HRecord;
 pub use self::i_record::IRecord;
 pub use self::j_record::JRecord;
