@@ -5,6 +5,7 @@ mod h_record;
 mod i_record;
 mod j_record;
 mod k_record;
+mod l_record;
 
 use ::{Error, Result};
 pub use self::b_record::BRecord;
@@ -14,6 +15,7 @@ pub use self::h_record::HRecord;
 pub use self::i_record::IRecord;
 pub use self::j_record::JRecord;
 pub use self::k_record::KRecord;
+pub use self::l_record::LRecord;
 
 /// IGC file record type representing a single line
 #[derive(Debug)]
