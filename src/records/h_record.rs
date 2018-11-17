@@ -46,120 +46,74 @@ mod tests {
     use super::HeaderSource::*;
     use super::HeaderCode::*;
 
+    fn assert_header(bytes: &[u8], code: HeaderCode, text: &str, source: HeaderSource) {
+        assert_eq!(HRecord::parse(bytes).unwrap(), HRecord::new(source, code, text));
+    }
+
     #[test]
     fn test_parse_separators() {
-        assert_eq!(HRecord::parse(b"HFRFWFlarm-IGC04.07").unwrap(),
-                   HRecord::new(FlightRecorder, RFW, "Flarm-IGC04.07"));
-        assert_eq!(HRecord::parse(b"HFRFW:Flarm-IGC04.07").unwrap(),
-                   HRecord::new(FlightRecorder, RFW, "Flarm-IGC04.07"));
-        assert_eq!(HRecord::parse(b"HFRFWFirmwareVersion:Flarm-IGC04.07").unwrap(),
-                   HRecord::new(FlightRecorder, RFW, "Flarm-IGC04.07"));
+        assert_header(b"HFRFWFlarm-IGC04.07", RFW, "Flarm-IGC04.07", FlightRecorder);
+        assert_header(b"HFRFW:Flarm-IGC04.07", RFW, "Flarm-IGC04.07", FlightRecorder);
+        assert_header(b"HFRFWFirmwareVersion:Flarm-IGC04.07", RFW, "Flarm-IGC04.07", FlightRecorder);
     }
 
     #[test]
     fn test_parse_sources() {
-        assert_eq!(HRecord::parse(b"HFGTYGliderType:A350").unwrap(),
-                   HRecord::new(FlightRecorder, GTY, "A350"));
-        assert_eq!(HRecord::parse(b"HOGTYGliderType:A350").unwrap(),
-                   HRecord::new(Observer, GTY, "A350"));
-        assert_eq!(HRecord::parse(b"HPGTYGliderType:A350").unwrap(),
-                   HRecord::new(HeaderSource::Other('P'), GTY, "A350"));
+        assert_header(b"HFGTYGliderType:A350", GTY, "A350", FlightRecorder);
+        assert_header(b"HOGTYGliderType:A350", GTY, "A350", Observer);
+        assert_header(b"HPGTYGliderType:A350", GTY, "A350", HeaderSource::Other('P'));
     }
 
     #[test]
     fn test_parse_encodings() {
-        assert_eq!(HRecord::parse(b"HFPLT:John Doe").unwrap(),
-                   HRecord::new(FlightRecorder, PLT, "John Doe"));
-        assert_eq!(HRecord::parse("HFPLT:Jörg Müller".as_bytes()).unwrap(),
-                   HRecord::new(FlightRecorder, PLT, "Jörg Müller"));
-        assert_eq!(HRecord::parse(b"HFPLT:J\xf6rg M\xfcller").unwrap(),
-                   HRecord::new(FlightRecorder, PLT, "Jörg Müller"));
+        assert_header(b"HFPLT:John Doe", PLT, "John Doe", FlightRecorder);
+        assert_header("HFPLT:Jörg Müller".as_bytes(), PLT, "Jörg Müller", FlightRecorder);
+        assert_header(b"HFPLT:J\xf6rg M\xfcller", PLT, "Jörg Müller", FlightRecorder);
     }
 
     #[test]
     fn test_parse_real_world() {
-        assert_eq!(HRecord::parse(b"HFDTE150510").unwrap(),
-                   HRecord::new(FlightRecorder, DTE, "150510"));
-        assert_eq!(HRecord::parse(b"HFFXA500").unwrap(),
-                   HRecord::new(FlightRecorder, "FXA".parse().unwrap(), "500"));
-        assert_eq!(HRecord::parse(b"HFPLTPilotincharge:").unwrap(),
-                   HRecord::new(FlightRecorder, PLT, ""));
-        assert_eq!(HRecord::parse(b"HPCM2Crew2:").unwrap(),
-                   HRecord::new(HeaderSource::Other('P'), CM2, ""));
-        assert_eq!(HRecord::parse(b"HFGTYGliderType:").unwrap(),
-                   HRecord::new(FlightRecorder, GTY, ""));
-        assert_eq!(HRecord::parse(b"HFGIDGliderID:").unwrap(),
-                   HRecord::new(FlightRecorder, GID, ""));
-        assert_eq!(HRecord::parse(b"HFDTM100GPSDatum:WGS84").unwrap(),
-                   HRecord::new(FlightRecorder, DTM, "WGS84"));
-        assert_eq!(HRecord::parse(b"HFRFWFirmwareVersion:Flarm-IGC04.07").unwrap(),
-                   HRecord::new(FlightRecorder, RFW, "Flarm-IGC04.07"));
-        assert_eq!(HRecord::parse(b"HFRHWHardwareVersion:Flarm-IGC06").unwrap(),
-                   HRecord::new(FlightRecorder, RHW, "Flarm-IGC06"));
-        assert_eq!(HRecord::parse(b"HFFTYFRType:Flarm-IGC").unwrap(),
-                   HRecord::new(FlightRecorder, FTY, "Flarm-IGC"));
-        assert_eq!(HRecord::parse(b"HFGPSu-blox:LEA-4P,16,8191").unwrap(),
-                   HRecord::new(FlightRecorder, GPS, "LEA-4P,16,8191"));
-        assert_eq!(HRecord::parse(b"HFPRSPressAltSensor:Intersema MS5534B,8191").unwrap(),
-                   HRecord::new(FlightRecorder, PRS, "Intersema MS5534B,8191"));
-        assert_eq!(HRecord::parse(b"HFCCLCompetitionClass:").unwrap(),
-                   HRecord::new(FlightRecorder, CCL, ""));
-        assert_eq!(HRecord::parse(b"HFCIDCompetitionID:").unwrap(),
-                   HRecord::new(FlightRecorder, CID, ""));
-        assert_eq!(HRecord::parse(b"HFDTE150709").unwrap(),
-                   HRecord::new(FlightRecorder, DTE, "150709"));
-        assert_eq!(HRecord::parse(b"HFFXA100").unwrap(),
-                   HRecord::new(FlightRecorder, "FXA".parse().unwrap(), "100"));
-        assert_eq!(HRecord::parse(b"HFPLTPILOT:KEVIN.HOULIHAN").unwrap(),
-                   HRecord::new(FlightRecorder, PLT, "KEVIN.HOULIHAN"));
-        assert_eq!(HRecord::parse(b"HFGTYGLIDERTYPE:DG800/18").unwrap(),
-                   HRecord::new(FlightRecorder, GTY, "DG800/18"));
-        assert_eq!(HRecord::parse(b"HFGIDGLIDERID:EI-GMN").unwrap(),
-                   HRecord::new(FlightRecorder, GID, "EI-GMN"));
-        assert_eq!(HRecord::parse(b"HFDTM100GPSDATUM:WGS-1984").unwrap(),
-                   HRecord::new(FlightRecorder, DTM, "WGS-1984"));
-        assert_eq!(HRecord::parse(b"HFRFWFIRMWAREVERSION:1.0").unwrap(),
-                   HRecord::new(FlightRecorder, RFW, "1.0"));
-        assert_eq!(HRecord::parse(b"HFRHWHARDWAREVERSION:2.1").unwrap(),
-                   HRecord::new(FlightRecorder, RHW, "2.1"));
-        assert_eq!(HRecord::parse(b"HFFTYFRTYPE:LXNAVIGATION,LX7007F").unwrap(),
-                   HRecord::new(FlightRecorder, FTY, "LXNAVIGATION,LX7007F"));
-        assert_eq!(HRecord::parse(b"HFGPS:uBLOXf_TIM-LP,16,max9000m").unwrap(),
-                   HRecord::new(FlightRecorder, GPS, "uBLOXf_TIM-LP,16,max9000m"));
-        assert_eq!(HRecord::parse(b"HFPRSPRESSALTSENSOR:INTERSEMA,MS5534A,max8000m").unwrap(),
-                   HRecord::new(FlightRecorder, PRS, "INTERSEMA,MS5534A,max8000m"));
-        assert_eq!(HRecord::parse(b"HFCIDCOMPETITIONID:MN").unwrap(),
-                   HRecord::new(FlightRecorder, CID, "MN"));
-        assert_eq!(HRecord::parse(b"HFCCLCOMPETITIONCLASS:STANDARD").unwrap(),
-                   HRecord::new(FlightRecorder, CCL, "STANDARD"));
-        assert_eq!(HRecord::parse(b"HFDTE040516").unwrap(),
-                   HRecord::new(FlightRecorder, DTE, "040516"));
-        assert_eq!(HRecord::parse(b"HFFXA500").unwrap(),
-                   HRecord::new(FlightRecorder, "FXA".parse().unwrap(), "500"));
-        assert_eq!(HRecord::parse(b"HFPLTPilotincharge:").unwrap(),
-                   HRecord::new(FlightRecorder, PLT, ""));
-        assert_eq!(HRecord::parse(b"HPCM2Crew2:").unwrap(),
-                   HRecord::new(HeaderSource::Other('P'), CM2, ""));
-        assert_eq!(HRecord::parse(b"HFGTYGliderType:ASG-29E (18m)").unwrap(),
-                   HRecord::new(FlightRecorder, GTY, "ASG-29E (18m)"));
-        assert_eq!(HRecord::parse(b"HFGIDGliderID:D-KCSS").unwrap(),
-                   HRecord::new(FlightRecorder, GID, "D-KCSS"));
-        assert_eq!(HRecord::parse(b"HFDTM100GPSDatum:WGS84").unwrap(),
-                   HRecord::new(FlightRecorder, DTM, "WGS84"));
-        assert_eq!(HRecord::parse(b"HFRFWFirmwareVersion:Flarm-IGC06.01").unwrap(),
-                   HRecord::new(FlightRecorder, RFW, "Flarm-IGC06.01"));
-        assert_eq!(HRecord::parse(b"HFRHWHardwareVersion:Flarm-IGC06").unwrap(),
-                   HRecord::new(FlightRecorder, RHW, "Flarm-IGC06"));
-        assert_eq!(HRecord::parse(b"HFFTYFRType:Flarm-IGC").unwrap(),
-                   HRecord::new(FlightRecorder, FTY, "Flarm-IGC"));
-        assert_eq!(HRecord::parse(b"HFGPSu-blox:LEA-4P,16,8191").unwrap(),
-                   HRecord::new(FlightRecorder, GPS, "LEA-4P,16,8191"));
-        assert_eq!(HRecord::parse(b"HFPRSPressAltSensor:Intersema MS5534B,8191").unwrap(),
-                   HRecord::new(FlightRecorder, PRS, "Intersema MS5534B,8191"));
-        assert_eq!(HRecord::parse(b"HFCCLCompetitionClass:Club").unwrap(),
-                   HRecord::new(FlightRecorder, CCL, "Club"));
-        assert_eq!(HRecord::parse(b"HFCIDCompetitionID:TH").unwrap(),
-                   HRecord::new(FlightRecorder, CID, "TH"));
+        assert_header(b"HFDTE150510", DTE, "150510", FlightRecorder);
+        assert_header(b"HFFXA500", "FXA".parse().unwrap(), "500", FlightRecorder);
+        assert_header(b"HFPLTPilotincharge:", PLT, "", FlightRecorder);
+        assert_header(b"HPCM2Crew2:", CM2, "", HeaderSource::Other('P'));
+        assert_header(b"HFGTYGliderType:", GTY, "", FlightRecorder);
+        assert_header(b"HFGIDGliderID:", GID, "", FlightRecorder);
+        assert_header(b"HFDTM100GPSDatum:WGS84", DTM, "WGS84", FlightRecorder);
+        assert_header(b"HFRFWFirmwareVersion:Flarm-IGC04.07", RFW, "Flarm-IGC04.07", FlightRecorder);
+        assert_header(b"HFRHWHardwareVersion:Flarm-IGC06", RHW, "Flarm-IGC06", FlightRecorder);
+        assert_header(b"HFFTYFRType:Flarm-IGC", FTY, "Flarm-IGC", FlightRecorder);
+        assert_header(b"HFGPSu-blox:LEA-4P,16,8191", GPS, "LEA-4P,16,8191", FlightRecorder);
+        assert_header(b"HFPRSPressAltSensor:Intersema MS5534B,8191", PRS, "Intersema MS5534B,8191", FlightRecorder);
+        assert_header(b"HFCCLCompetitionClass:", CCL, "", FlightRecorder);
+        assert_header(b"HFCIDCompetitionID:", CID, "", FlightRecorder);
+        assert_header(b"HFDTE150709", DTE, "150709", FlightRecorder);
+        assert_header(b"HFFXA100", "FXA".parse().unwrap(), "100", FlightRecorder);
+        assert_header(b"HFPLTPILOT:KEVIN.HOULIHAN", PLT, "KEVIN.HOULIHAN", FlightRecorder);
+        assert_header(b"HFGTYGLIDERTYPE:DG800/18", GTY, "DG800/18", FlightRecorder);
+        assert_header(b"HFGIDGLIDERID:EI-GMN", GID, "EI-GMN", FlightRecorder);
+        assert_header(b"HFDTM100GPSDATUM:WGS-1984", DTM, "WGS-1984", FlightRecorder);
+        assert_header(b"HFRFWFIRMWAREVERSION:1.0", RFW, "1.0", FlightRecorder);
+        assert_header(b"HFRHWHARDWAREVERSION:2.1", RHW, "2.1", FlightRecorder);
+        assert_header(b"HFFTYFRTYPE:LXNAVIGATION,LX7007F", FTY, "LXNAVIGATION,LX7007F", FlightRecorder);
+        assert_header(b"HFGPS:uBLOXf_TIM-LP,16,max9000m", GPS, "uBLOXf_TIM-LP,16,max9000m", FlightRecorder);
+        assert_header(b"HFPRSPRESSALTSENSOR:INTERSEMA,MS5534A,max8000m", PRS, "INTERSEMA,MS5534A,max8000m", FlightRecorder);
+        assert_header(b"HFCIDCOMPETITIONID:MN", CID, "MN", FlightRecorder);
+        assert_header(b"HFCCLCOMPETITIONCLASS:STANDARD", CCL, "STANDARD", FlightRecorder);
+        assert_header(b"HFDTE040516", DTE, "040516", FlightRecorder);
+        assert_header(b"HFFXA500", "FXA".parse().unwrap(), "500", FlightRecorder);
+        assert_header(b"HFPLTPilotincharge:", PLT, "", FlightRecorder);
+        assert_header(b"HPCM2Crew2:", CM2, "", HeaderSource::Other('P'));
+        assert_header(b"HFGTYGliderType:ASG-29E (18m)", GTY, "ASG-29E (18m)", FlightRecorder);
+        assert_header(b"HFGIDGliderID:D-KCSS", GID, "D-KCSS", FlightRecorder);
+        assert_header(b"HFDTM100GPSDatum:WGS84", DTM, "WGS84", FlightRecorder);
+        assert_header(b"HFRFWFirmwareVersion:Flarm-IGC06.01", RFW, "Flarm-IGC06.01", FlightRecorder);
+        assert_header(b"HFRHWHardwareVersion:Flarm-IGC06", RHW, "Flarm-IGC06", FlightRecorder);
+        assert_header(b"HFFTYFRType:Flarm-IGC", FTY, "Flarm-IGC", FlightRecorder);
+        assert_header(b"HFGPSu-blox:LEA-4P,16,8191", GPS, "LEA-4P,16,8191", FlightRecorder);
+        assert_header(b"HFPRSPressAltSensor:Intersema MS5534B,8191", PRS, "Intersema MS5534B,8191", FlightRecorder);
+        assert_header(b"HFCCLCompetitionClass:Club", CCL, "Club", FlightRecorder);
+        assert_header(b"HFCIDCompetitionID:TH", CID, "TH", FlightRecorder);
     }
 
     proptest! {
