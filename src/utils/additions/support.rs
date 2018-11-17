@@ -39,4 +39,12 @@ pub trait AdditionSupport {
         let value = self.get_three_digit_addition(&AdditionCode::HDM)?;
         if value < 360 { Some(value) } else { None }
     }
+
+    fn additional_latitude_decimals(&self) -> Option<f64> {
+        self.get_fraction_addition(&AdditionCode::LAD).map(|v| v / 60_000.)
+    }
+
+    fn additional_longitude_decimals(&self) -> Option<f64> {
+        self.get_fraction_addition(&AdditionCode::LOD).map(|v| v / 60_000.)
+    }
 }
