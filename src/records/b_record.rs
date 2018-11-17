@@ -58,28 +58,6 @@ impl BRecord {
         })
     }
 
-    /// Fix accuracy in metres
-    pub fn fix_accuracy(&self) -> Option<u16> {
-        self.get_three_digit_addition(&AdditionCode::FXA)
-    }
-
-    /// Environmental Noise Level
-    pub fn enl(&self) -> Option<u16> {
-        self.get_three_digit_addition(&AdditionCode::ENL)
-    }
-
-    /// Heading True
-    pub fn heading(&self) -> Option<u16> {
-        let value = self.get_three_digit_addition(&AdditionCode::HDT)?;
-        if value < 360 { Some(value) } else { None }
-    }
-
-    /// Heading Magnetic
-    pub fn heading_magnetic(&self) -> Option<u16> {
-        let value = self.get_three_digit_addition(&AdditionCode::HDM)?;
-        if value < 360 { Some(value) } else { None }
-    }
-
     /// Latitude of the fix using the `latitude` field and the `LAD` addition if
     /// it exists.
     pub fn latitude(&self) -> f64 {
@@ -121,14 +99,13 @@ impl BRecord {
         let value = parse_int::<u32>(bytes)? as f64;
         Some(value / f64::from(10).powi(bytes.len() as i32))
     }
-
-    fn get_three_digit_addition(&self, code: &AdditionCode) -> Option<u16> {
-        let bytes = self.additions.get(code)?;
-        if bytes.len() != 3 { return None }
-        parse_int::<u16>(bytes)
-    }
 }
 
+impl AdditionSupport for BRecord {
+    fn get_addition(&self, code: &AdditionCode) -> Option<&[u8]> {
+        self.additions.get(code).map(Vec::as_ref)
+    }
+}
 
 #[cfg(test)]
 mod tests {

@@ -1,7 +1,6 @@
 use regex::bytes::Regex;
 
 use ::{Error, Result, Time};
-use ::utils::num::parse_int;
 use ::utils::additions::*;
 
 #[derive(Debug)]
@@ -31,33 +30,11 @@ impl KRecord {
 
         Ok(KRecord { time, additions })
     }
+}
 
-    /// Fix accuracy in metres
-    pub fn fix_accuracy(&self) -> Option<u16> {
-        self.get_three_digit_addition(&AdditionCode::FXA)
-    }
-
-    /// Environmental Noise Level
-    pub fn enl(&self) -> Option<u16> {
-        self.get_three_digit_addition(&AdditionCode::ENL)
-    }
-
-    /// Heading True
-    pub fn heading(&self) -> Option<u16> {
-        let value = self.get_three_digit_addition(&AdditionCode::HDT)?;
-        if value < 360 { Some(value) } else { None }
-    }
-
-    /// Heading Magnetic
-    pub fn heading_magnetic(&self) -> Option<u16> {
-        let value = self.get_three_digit_addition(&AdditionCode::HDM)?;
-        if value < 360 { Some(value) } else { None }
-    }
-
-    fn get_three_digit_addition(&self, code: &AdditionCode) -> Option<u16> {
-        let bytes = self.additions.get(code)?;
-        if bytes.len() != 3 { return None }
-        parse_int::<u16>(bytes)
+impl AdditionSupport for KRecord {
+    fn get_addition(&self, code: &AdditionCode) -> Option<&[u8]> {
+        self.additions.get(code).map(Vec::as_ref)
     }
 }
 
