@@ -10,6 +10,14 @@ pub trait AdditionSupport {
         parse_int::<u16>(bytes)
     }
 
+    fn get_fraction_addition(&self, code: &AdditionCode) -> Option<f64> {
+        let bytes = self.get_addition(code)?;
+        let digits = bytes.len();
+        let value = parse_int::<u32>(bytes)?;
+        let fraction = value as f64 / 10u32.pow(digits as u32) as f64;
+        Some(fraction)
+    }
+
     /// Fix accuracy in metres
     fn fix_accuracy(&self) -> Option<u16> {
         self.get_three_digit_addition(&AdditionCode::FXA)

@@ -74,9 +74,7 @@ impl BRecord {
     }
 
     fn latitude_addition(&self) -> Option<f64> {
-        let bytes = self.additions.get(&AdditionCode::LAD)?;
-        let value = parse_int::<u32>(bytes)? as f64;
-        Some(value / f64::from(10).powi(bytes.len() as i32))
+        self.get_fraction_addition(&AdditionCode::LAD)
     }
 
     /// Latitude of the fix using the `longitude` field and the `LOD` addition if
@@ -95,9 +93,7 @@ impl BRecord {
     }
 
     fn longitude_addition(&self) -> Option<f64> {
-        let bytes = self.additions.get(&AdditionCode::LOD)?;
-        let value = parse_int::<u32>(bytes)? as f64;
-        Some(value / f64::from(10).powi(bytes.len() as i32))
+        self.get_fraction_addition(&AdditionCode::LOD)
     }
 }
 
